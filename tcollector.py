@@ -266,9 +266,10 @@ class ReaderThread(threading.Thread):
        All data read is put into the self.readerq Queue, which is
        consumed by the SenderThread."""
 
-    def __init__(self, dedupinterval, evictinterval, deduponlyzero):
+    def __init__(self, http, dedupinterval, evictinterval, deduponlyzero):
         """Constructor.
             Args:
+              http: Should the tcollector talk to the TSD endpoint over HTTP
               dedupinterval: If a metric sends the same value over successive
                 intervals, suppress sending the same value to the TSD until
                 this many seconds have elapsed.  This helps graphs over narrow
@@ -290,6 +291,7 @@ class ReaderThread(threading.Thread):
         self.dedupinterval = dedupinterval
         self.evictinterval = evictinterval
         self.deduponlyzero = deduponlyzero
+        self.http = http
 
     def run(self):
         """Main loop for this thread.  Just reads from collectors,
@@ -327,7 +329,8 @@ class ReaderThread(threading.Thread):
         self.lines_collected += 1
 
         col.lines_received += 1
-        if len(line) >= 1024:  # Limit in net.opentsdb.tsd.PipelineFactory
+        if len(line) >= 1024 and not self.http:
+        # Limit in net.opentsdb.tsd.PipelineFactory, for telnet only
             LOG.warning('%s line too long: %s', col.name, line)
             col.lines_invalid += 1
             return
@@ -489,6 +492,30 @@ class SenderThread(threading.Thread):
         LOG.info('Blacklisting %s:%s for a while', self.host, self.port)
         self.blacklisted_hosts.add((self.host, self.port))
 
+    def collect_own_stats(self):
+        if self.self_report_stats:
+            strs = [
+                ('reader.lines_collected',
+                 '', self.reader.lines_collected),
+                ('reader.lines_dropped',
+                 '', self.reader.lines_dropped)
+            ]
+
+            for col in all_living_collectors():
+                strs.append(('collector.lines_sent', 'collector='
+                             + col.name, col.lines_sent))
+                strs.append(('collector.lines_received', 'collector='
+                             + col.name, col.lines_received))
+                strs.append(('collector.lines_invalid', 'collector='
+                             + col.name, col.lines_invalid))
+
+            ts = int(time.time())
+            strout = ["tcollector.%s %d %d %s"
+                      % (x[0], ts, x[2], x[1]) for x in strs]
+            for string in strout:
+                self.sendq.append(string)
+
+
     def run(self):
         """Main loop.  A simple scheduler.  Loop waiting for 5
            seconds for data on the queue.  If there's no data, just
@@ -501,6 +528,7 @@ class SenderThread(threading.Thread):
         while ALIVE:
             try:
                 self.maintain_conn()
+                self.collect_own_stats()
                 try:
                     line = self.reader.readerq.get(True, 5)
                 except Empty:
@@ -592,31 +620,6 @@ class SenderThread(threading.Thread):
             # sure we read everything it sent us by looping once more.
             if len(buf) == bufsize:
                 continue
-
-            # If everything is good, send out our meta stats.  This
-            # helps to see what is going on with the tcollector.
-            # TODO need to fix this for http
-            if self.self_report_stats:
-                strs = [
-                        ('reader.lines_collected',
-                         '', self.reader.lines_collected),
-                        ('reader.lines_dropped',
-                         '', self.reader.lines_dropped)
-                       ]
-
-                for col in all_living_collectors():
-                    strs.append(('collector.lines_sent', 'collector='
-                                 + col.name, col.lines_sent))
-                    strs.append(('collector.lines_received', 'collector='
-                                 + col.name, col.lines_received))
-                    strs.append(('collector.lines_invalid', 'collector='
-                                 + col.name, col.lines_invalid))
-
-                ts = int(time.time())
-                strout = ["tcollector.%s %d %d %s"
-                          % (x[0], ts, x[2], x[1]) for x in strs]
-                for string in strout:
-                    self.sendq.append(string)
 
             break  # TSD is alive.
 
@@ -1047,7 +1050,7 @@ def main(argv):
 
     # at this point we're ready to start processing, so start the ReaderThread
     # so we can have it running and pulling in data for us
-    reader = ReaderThread(options.dedupinterval, options.evictinterval, options.deduponlyzero)
+    reader = ReaderThread(options.http, options.dedupinterval, options.evictinterval, options.deduponlyzero)
     reader.start()
 
     # prepare list of (host, port) of TSDs given on CLI
