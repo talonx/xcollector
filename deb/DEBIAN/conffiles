@@ -1,0 +1,6 @@
+/etc/init.d/xcollector
+/usr/local/xcollector/conf/grok.yml
+/usr/local/xcollector/conf/grok_nginx.yml
+/usr/local/xcollector/conf/grok_tomcat.yml
+/usr/local/xcollector/conf/mysql.yml
+/usr/local/xcollector/conf/xcollector.yml

@@ -1,41 +1,36 @@
 #!/bin/bash
 #
-# tcollector   Startup script for the tcollector monitoring agent
+# xcollector   Startup script for the xcollector monitoring agent
 #
 # chkconfig:   2345 15 85
-# description: tcollector is an agent that collects and reports \
-#              monitoring data for OpenTSDB.
-# processname: tcollector
-# pidfile: /var/run/tcollector.pid
+# description: xcollector is an agent that collects and reports \
+#              monitoring data for Apptuit.
+# processname: xcollector
+# pidfile: /var/run/xcollector.pid
 #
 ### BEGIN INIT INFO
-# Provides: tcollector
+# Provides: xcollector
 # Required-Start: $local_fs $remote_fs $network $named
 # Required-Stop: $local_fs $remote_fs $network
-# Short-Description: start and stop tcollector monitoring agent
-# Description: tcollector is an agent that collects and reports
-#  monitoring data for OpenTSDB.
+# Short-Description: start and stop xcollector monitoring agent
+# Description: xcollector is an agent that collects and reports
+#  monitoring data for Apptuit.
 ### END INIT INFO
 
 # Source function library.
 . /etc/init.d/functions
 
-TSD_HOST=tsd
-TSD_PORT=4242
 THIS_HOST=`hostname`
-TCOLLECTOR=${TCOLLECTOR-HOMEDIR/tcollector.py}
-PIDFILE=${PIDFILE-/var/run/tcollector.pid}
-LOGFILE=${LOGFILE-/var/log/tcollector.log}
-LOGFILE_MAX_BYTES=${LOGFILE_MAX_BYTES-67108864}
-LOGFILE_BACKUP_COUNT=${LOGFILE_BACKUP_COUNT-0}
-RECONNECT_INTERVAL=${RECONNECT_INTERVAL-0}
+TCOLLECTOR=${TCOLLECTOR-/usr/local/xcollector/xcollector.py}
+PIDFILE=${PIDFILE-/var/run/xcollector.pid}
+LOGFILE=${LOGFILE-/var/log/xcollector.log}
 
-prog=tcollector
+prog=xcollector
 if [ -f /etc/sysconfig/$prog ]; then
   . /etc/sysconfig/$prog
 fi
 
-lockfile=${LOCKFILE-/var/lock/subsys/tcollector}
+lockfile=${LOCKFILE-/var/lock/subsys/xcollector}
 
 EXTRA_TAGS_OPTS=""
 for TV in $EXTRA_TAGS; do
@@ -44,16 +39,8 @@ done
 
 if [ -z "$OPTIONS" ]; then
   OPTIONS="-D"
-  if [ -n "$TSD_HOSTS" ]; then
-    OPTIONS="$OPTIONS -L $TSD_HOSTS"
-  else
-    OPTIONS="$OPTIONS -H $TSD_HOST"
-  fi
   OPTIONS="$OPTIONS -t host=$THIS_HOST -P $PIDFILE"
-  OPTIONS="$OPTIONS -p $TSD_PORT"
-  OPTIONS="$OPTIONS --reconnect-interval $RECONNECT_INTERVAL"
-  OPTIONS="$OPTIONS --max-bytes $LOGFILE_MAX_BYTES --backup-count $LOGFILE_BACKUP_COUNT"
-  OPTIONS="$OPTIONS --logfile $LOGFILE $EXTRA_TAGS_OPTS"
+  OPTIONS="$OPTIONS $EXTRA_TAGS_OPTS"
 fi
 
 sanity_check() {
@@ -78,8 +65,8 @@ start() {
   return $RETVAL
 }
 
-# When stopping tcollector a delay of ~15 seconds before SIGKILLing the
-# process so as to give enough time for tcollector to SIGKILL any errant
+# When stopping xcollector a delay of ~15 seconds before SIGKILLing the
+# process so as to give enough time for xcollector to SIGKILL any errant
 # collectors.
 stop() {
   echo -n $"Stopping $prog: "

@@ -47,7 +47,7 @@ from optparse import OptionParser
 COLLECTORS = {}
 GENERATION = 0
 DEFAULT_LOG = '/var/log/tcollector.log'
-LOG = logging.getLogger('tcollector')
+LOG = logging.getLogger('xcollector')
 ALIVE = True
 # If the SenderThread catches more than this many consecutive uncaught
 # exceptions, something is not right and tcollector will shutdown.
@@ -780,7 +780,7 @@ class SenderThread(threading.Thread):
             self.pick_connection()
 
         url = self.build_http_url()
-        LOG.debug("Sending metrics to url", url)
+        LOG.debug("Sending metrics to %s", url)
         req = urllib2.Request(url)
         if self.http_username and self.http_password:
           req.add_header("Authorization", "Basic %s"
@@ -798,6 +798,8 @@ class SenderThread(threading.Thread):
             #     print
         except urllib2.HTTPError, e:
             LOG.error("Got error %s %s", e, e.read().rstrip('\n'))
+            if "HTTP Error 401" in e:
+                LOG.error("Please check if your access_token is correct in /etc/xcollector/xcollector.yml")
             # for line in http_error:
             #   print line,
 
@@ -826,35 +828,7 @@ def parse_cmdline(argv):
         defaults = config.get_defaults()
     except ImportError:
         sys.stderr.write("ImportError: Could not load defaults from configuration. Using hardcoded values")
-        default_cdir = os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), 'collectors')
-        defaults = {
-            'verbose': False,
-            'no_tcollector_stats': False,
-            'evictinterval': 6000,
-            'dedupinterval': 300,
-            'deduponlyzero': False,
-            'allowed_inactivity_time': 600,
-            'dryrun': False,
-            'maxtags': 8,
-            'max_bytes': 64 * 1024 * 1024,
-            'http_password': False,
-            'reconnectinterval': 0,
-            'http_username': False,
-            'port': 4242,
-            'pidfile': '/var/run/tcollector.pid',
-            'http': False,
-            'http_api_path': "api/put",
-            'tags': [],
-            'remove_inactive_collectors': False,
-            'host': 'localhost',
-            'backup_count': 1,
-            'logfile': '/var/log/tcollector.log',
-            'cdir': default_cdir,
-            'ssl': False,
-            'stdin': False,
-            'daemonize': False,
-            'hosts': False
-        }
+        raise
     except:
         sys.stderr.write("Unexpected error: %s" % sys.exc_info()[0])
         raise
@@ -929,7 +903,7 @@ def parse_cmdline(argv):
     parser.add_option('--backup-count', dest='backup_count', type='int',
                         default=defaults['backup_count'], help='Maximum number of logfiles to backup.')
     parser.add_option('--logfile', dest='logfile', type='str',
-                        default=DEFAULT_LOG,
+                        default=defaults['logfile'],
                         help='Filename where logs are written to.')
     parser.add_option('--reconnect-interval',dest='reconnectinterval', type='int',
                         default=defaults['reconnectinterval'], metavar='RECONNECTINTERVAL',
@@ -959,6 +933,9 @@ def parse_cmdline(argv):
     # We cannot write to stdout when we're a daemon.
     if (options.daemonize or options.max_bytes) and not options.backup_count:
         options.backup_count = 1
+    if not options.http_username or options.http_username == '' or options.http_username == 'PASTE_ACCESS_TOKEN_HERE':
+        parser.error('access_token is not specified. Please add Apptuit issued access_token to '
+                     '/etc/xcollector/xcollector.yml.')
     return (options, args)
 
 
@@ -1034,6 +1011,8 @@ def main(argv):
     if not 'host' in tags and not options.stdin:
         tags['host'] = socket.gethostname()
         LOG.warning('Tag "host" not specified, defaulting to %s.', tags['host'])
+
+    LOG.info("##### Using Host Name \"" + tags['host'] + "\" #####")
 
     options.cdir = os.path.realpath(options.cdir)
     if not os.path.isdir(options.cdir):

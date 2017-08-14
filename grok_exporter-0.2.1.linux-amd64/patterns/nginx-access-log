@@ -1,0 +1,4 @@
+COMMONNGINXLOG %{IPORHOST:clientip} %{HTTPDUSER:ident} %{USER:auth} \[%{HTTPDATE:timestamp}\] "(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})" %{NUMBER:response} (?:%{NUMBER:bytes}|-)
+COMBINEDNGINXLOG %{COMMONNGINXLOG} %{QS:referrer} %{QS:agent}
+APPTUITNGINXLOG %{COMBINEDNGINXLOG} %{INT:rxbytes} %{INT:txbytes} %{NUMBER:reqtime} (?:%{NUMBER:upstime}|-)
+

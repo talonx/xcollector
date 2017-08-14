@@ -13,10 +13,10 @@
 
 # This Makefile is a complete train wreck.  I'm sorry.  --tsuna
 
-PACKAGE_VERSION := 1.3.1
+PACKAGE_VERSION := 0.6
 RPM_REVISION := 1
 # Where do we install our files.
-tcollectordir := /usr/local/tcollector
+tcollectordir := /usr/local/xcollector
 
 # Various commands we need.
 MKDIR_P := mkdir -p
@@ -36,12 +36,12 @@ git_fullsha1 := \
   `git rev-list --pretty=format:%H HEAD --max-count=1 | sed 1d || echo unknown`
 
 # What / where do we build.
-RPM_TARGET := noarch
-BASENAME := tcollector-$(PACKAGE_VERSION)-$(RPM_REVISION)
+RPM_TARGET := x86_64
+BASENAME := xcollector-$(PACKAGE_VERSION)-$(RPM_REVISION)
 RPM := $(BASENAME).$(RPM_TARGET).rpm
 SRPM := $(BASENAME).src.rpm
-COLLECTORSRPM := tcollector-collectors-$(PACKAGE_VERSION)-$(RPM_REVISION).$(RPM_TARGET).rpm
-EOSRPM := tcollector-eos-$(PACKAGE_VERSION)-$(RPM_REVISION).$(RPM_TARGET).rpm
+COLLECTORSRPM := xcollector-collectors-$(PACKAGE_VERSION)-$(RPM_REVISION).$(RPM_TARGET).rpm
+EOSRPM := xcollector-eos-$(PACKAGE_VERSION)-$(RPM_REVISION).$(RPM_TARGET).rpm
 SWIX := $(BASENAME).swix
 
 all: rpm swix
@@ -71,19 +71,19 @@ rpm:
             -e "s/@GIT_SHORTSHA1@/$(git_version)/" \
             -e "s/@GIT_FULLSHA1@/$(git_fullsha1)/" \
             -e 's/@RPM_REVISION@/$(RPM_REVISION)/' \
-	    tcollector.spec; \
-        } >tcollector-t.spec
+	    xcollector.spec; \
+        } >xcollector-t.spec
 	rpmbuild --define "_topdir %(pwd)/" \
           --define "_sourcedir %(pwd)/dist/" \
           --define "_rpmdir %(pwd)" \
           --define "_srcrpmdir %{_topdir}" \
-          -ba tcollector-t.spec
-	if test -f $(RPM_TARGET)/$(RPM); then mv $(RPM_TARGET)/$(RPM) .; else mv tcollector.$(RPM_TARGET).rpm $(RPM); fi
-	if test -f $(RPM_TARGET)/$(COLLECTORSRPM); then mv $(RPM_TARGET)/$(COLLECTORSRPM) .; else mv tcollector-collectors.$(RPM_TARGET).rpm $(COLLECTORSRPM); fi
-	if test -f $(RPM_TARGET)/$(EOSRPM); then mv $(RPM_TARGET)/$(EOSRPM) .; else mv tcollector-eos.$(RPM_TARGET).rpm $(EOSRPM); fi
+          -ba xcollector-t.spec
+	if test -f $(RPM_TARGET)/$(RPM); then mv $(RPM_TARGET)/$(RPM) .; else mv xcollector.$(RPM_TARGET).rpm $(RPM); fi
+	if test -f $(RPM_TARGET)/$(COLLECTORSRPM); then mv $(RPM_TARGET)/$(COLLECTORSRPM) .; else mv xcollector-collectors.$(RPM_TARGET).rpm $(COLLECTORSRPM); fi
+	if test -f $(RPM_TARGET)/$(EOSRPM); then mv $(RPM_TARGET)/$(EOSRPM) .; else mv xcollector-eos.$(RPM_TARGET).rpm $(EOSRPM); fi
 
 clean:
-	rm -rf tcollector-t.spec manifest.txt bld dist tmp $(RPM_TARGET)
+	rm -rf xcollector-t.spec manifest.txt bld dist tmp $(RPM_TARGET)
 
 distclean: clean
 	rm -f $(SWIX) $(RPM) $(SRPM) $(COLLECTORSRPM) $(EOSRPM)

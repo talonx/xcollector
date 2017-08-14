@@ -27,8 +27,10 @@
 # When this file executes, you can assume that its directory is in
 # sys.path, so you can import other Python modules from this directory
 # or its subdirectories.
-import os
-import sys
+
+from collectors.etc import yaml_conf
+
+TCOLLECTOR_CONF = yaml_conf.load_collector_configuration('xcollector.yml')['collector']
 
 def onload(options, tags):
     """Function called by tcollector when it starts up.
@@ -45,35 +47,29 @@ def get_defaults():
         This is called by the OptionParser.
     """
 
-    default_cdir = os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), 'collectors')
-
-    defaults = {
-        'verbose': False,
-        'no_tcollector_stats': False,
-        'evictinterval': 6000,
-        'dedupinterval': 300,
-        'deduponlyzero': False,
-        'allowed_inactivity_time': 600,
-        'dryrun': False,
-        'maxtags': 8,
-        'max_bytes': 64 * 1024 * 1024,
-        'http_password': False,
-        'reconnectinterval': 0,
-        'http_username': False,
-        'port': 4242,
-        'pidfile': '/var/run/tcollector.pid',
-        'http': False,
-        'http_api_path': "api/put",
-        'tags': [],
-        'remove_inactive_collectors': False,
-        'host': 'localhost',
-        'backup_count': 1,
-        'logfile': '/var/log/tcollector.log',
-        'cdir': default_cdir,
-        'ssl': False,
-        'stdin': False,
-        'daemonize': False,
-        'hosts': False
-    }
+    defaults = TCOLLECTOR_CONF['config_defaults']
+    defaults['pidfile'] = "/var/run/xcollector.pid"
+    defaults['no_tcollector_stats'] = False
+    defaults['evictinterval'] = 6000
+    defaults['dedupinterval'] = 0
+    defaults['deduponlyzero'] = False
+    defaults['allowed_inactivity_time'] = 600
+    defaults['maxtags'] = 25
+    defaults['max_bytes'] = defaults['log_max_bytes']
+    defaults['http_username'] = defaults['access_token']
+    defaults['http_password'] = True
+    defaults['reconnectinterval'] = 0
+    defaults['host'] = "api.apptuit.ai"
+    defaults['port'] = 443
+    defaults['http'] = True
+    defaults['http_api_path'] = "api/put"
+    defaults['tags'] = []
+    defaults['remove_inactive_collectors'] = False
+    defaults['backup_count'] = defaults['log_backup_count']
+    defaults["cdir"] = "/usr/local/xcollector/collectors"
+    defaults['ssl'] = True
+    defaults['stdin'] = False
+    defaults['daemonize'] = True
+    defaults['hosts'] = False
 
     return defaults

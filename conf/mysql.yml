@@ -1,0 +1,12 @@
+collector:
+    name: mysql
+    sock_files:
+        - path: "/tmp/mysql.sock"
+          username: "root"
+          password: ""
+        - path: "/var/lib/mysql/mysql.sock"
+          username: "root"
+          password: ""
+        - path: "/var/run/mysqld/mysqld.sock"
+          username: "root"
+          password: ""
