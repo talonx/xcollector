@@ -1,0 +1,52 @@
+global:
+    config_version: 2
+input:
+    type: file
+    path: /opt/tomcat/logs/localhost_access.log
+    readall: false
+grok:
+    patterns_dir: ./patterns
+metrics:
+    - type: counter
+      name: request_count
+      help: Total number of requests received
+      match: '%{APPTUITTOMCATLOG}'
+      labels:
+          service: tomcat
+          source: /opt/tomcat/logs/localhost_access.log
+          mtype: counter
+          unit: req
+    - type: counter
+      name: response_status_count
+      help: Total number of response codes and number of responses sent per response code
+      match: '%{APPTUITTOMCATLOG}'
+      labels:
+          service: tomcat
+          response: '{{.response}}'
+          source: /opt/tomcat/logs/localhost_access.log
+          mtype: counter
+          unit: req
+    - type: gauge
+      name: network_traffic::_direction_out::_
+      help: Total number of bytes received or transmitted
+      match: '%{APPTUITTOMCATLOG}'
+      value: '{{.bytes}}'
+      labels:
+          service: tomcat
+          source: /opt/tomcat/logs/localhost_access.log
+          mtype: gauge
+          unit: B
+    - type: summary
+      name: response_latency::_type_request::_
+      help: Total number of bytes received or transmitted
+      match: '%{APPTUITTOMCATLOG}'
+      value: '{{.reqtime}}'
+      quantiles: {0.5: 0.01, 0.75: 0.01, 0.9: 0.01, 0.99: 0.001, 0.999: 0.0001}
+      labels:
+          service: tomcat
+          source: /opt/tomcat/logs/localhost_access.log
+          mtype: count
+          unit: s
+server:
+    host: localhost
+    port: 9147

@@ -3,6 +3,8 @@
 # Semi Universal start-stop script
 # Keep it sh compatible, test with bash, dash, ksh, and zsh.
 
+export TSD_HOST=api.apptuit.ai
+
 # FreeBSD insctructions :
 # Put TCollector files into /usr/local/share/tcollector/
 # ln -s /usr/local/share/tcollector/tcollector /etc/rc.d/

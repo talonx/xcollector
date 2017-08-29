@@ -1,0 +1,5 @@
+collector:
+    name: cert checker
+    name_vs_domain:
+        gitlab: "gitlab.apptuit.ai"
+        api-prod: "api.apptuit.ai"

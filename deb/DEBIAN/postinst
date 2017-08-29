@@ -1,0 +1,4 @@
+if [ ! -L "/etc/xcollector" ]
+then
+  ln -s /usr/local/xcollector/conf /etc/xcollector
+fi

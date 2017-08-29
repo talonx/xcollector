@@ -1,0 +1,6 @@
+collector:
+    name: grok
+    grok_dir: "/usr/local/xcollector/grok_exporter-0.2.1.linux-amd64"
+    config_files:
+        - "/usr/local/xcollector/conf/grok_nginx.yml"
+        - "/usr/local/xcollector/conf/grok_tomcat.yml"
