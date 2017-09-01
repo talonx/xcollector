@@ -8,66 +8,48 @@ grok:
     patterns_dir: ./patterns
 metrics:
     - type: counter
-      name: request_count
+      name: nginx_request_count
       help: Total number of requests received
       match: '%{APPTUITNGINXLOG}'
       labels:
-          service: nginx
           source: /var/log/nginx/access.log
-          mtype: counter
-          unit: req
     - type: counter
-      name: response_status_count
+      name: nginx_response_status_count
       help: Total number of response codes and number of responses sent per response code
       match: '%{APPTUITNGINXLOG}'
       labels:
-          service: nginx
           response: '{{.response}}'
           source: /var/log/nginx/access.log
-          mtype: counter
-          unit: req
     - type: gauge
-      name: network_traffic::_direction_in::_
+      name: nginx_network_traffic::_direction_in::_
       help: Total number of bytes received or transmitted
       match: '%{APPTUITNGINXLOG}'
       value: '{{.rxbytes}}'
       labels:
-          service: nginx
           source: /var/log/nginx/access.log
-          mtype: gauge
-          unit: B
     - type: gauge
-      name: network_traffic::_direction_out::_
+      name: nginx_network_traffic::_direction_out::_
       help: Total number of bytes received or transmitted
       match: '%{APPTUITNGINXLOG}'
       value: '{{.txbytes}}'
       labels:
-          service: nginx
           source: /var/log/nginx/access.log
-          mtype: gauge
-          unit: B
     - type: summary
-      name: response_latency::_type_request::_
+      name: nginx_response_total_latency
       help: Total number of bytes received or transmitted
       match: '%{APPTUITNGINXLOG}'
       value: '{{.reqtime}}'
       quantiles: {0.5: 0.01, 0.75: 0.01, 0.9: 0.01, 0.99: 0.001, 0.999: 0.0001}
       labels:
-          service: nginx
           source: /var/log/nginx/access.log
-          mtype: count
-          unit: s
     - type: summary
-      name: response_latency::_type_upstream::_
+      name: nginx_response_latency::_type_upstream::_
       help: Total number of bytes received or transmitted
       match: '%{APPTUITNGINXLOG}'
       value: '{{.upstime}}'
       quantiles: {0.5: 0.01, 0.75: 0.01, 0.9: 0.01, 0.99: 0.001, 0.999: 0.0001}
       labels:
-          service: nginx
           source: /var/log/nginx/access.log
-          mtype: count
-          unit: s
 server:
     host: localhost
     port: 9146

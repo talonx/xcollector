@@ -27,6 +27,8 @@ except ImportError:
 
 from collectors.etc import mysqlconf
 from collectors.lib import utils
+from collectors.etc import yaml_conf
+from collectors.etc import metric_naming
 
 COLLECTION_INTERVAL = 15  # seconds
 CONNECT_TIMEOUT = 2  # seconds
@@ -42,6 +44,8 @@ DEFAULT_SOCKFILES = set([
 SEARCH_DIRS = [
   "/var/lib/mysql",
 ]
+
+METRIC_MAPPING = yaml_conf.load_collector_configuration('mysql_metrics.yml')
 
 class DB(object):
   """Represents a MySQL server (as we can monitor more than 1 MySQL)."""
@@ -212,6 +216,8 @@ def collectInnodbStatus(db):
   ts = now()
   def printmetric(metric, value, tags=""):
     print "mysql.%s %d %s schema=%s%s" % (metric, ts, value, db.dbname, tags)
+    metric_naming.print_if_apptuit_standard_metric("mysql." + metric, METRIC_MAPPING, ts, value, tags=None,
+                                                   tags_str="schema=" + db.dbname + tags)
 
   innodb_status = db.query("SHOW ENGINE INNODB STATUS")[0][2]
   m = re.search("^(\d{6}\s+\d{1,2}:\d\d:\d\d) INNODB MONITOR OUTPUT$",
@@ -296,6 +302,7 @@ def collect(db):
   ts = now()
   def printmetric(metric, value, tags=""):
     print "mysql.%s %d %s schema=%s%s" % (metric, ts, value, db.dbname, tags)
+    metric_naming.print_if_apptuit_standard_metric("mysql."+metric, METRIC_MAPPING, ts, value, tags=None, tags_str="schema=" + db.dbname + tags)
 
   has_innodb = False
   if db.isShowGlobalStatusSafe():

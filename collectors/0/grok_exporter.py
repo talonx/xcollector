@@ -7,13 +7,19 @@ import subprocess
 import sys
 import time
 import yaml
+import traceback
+
 from StringIO import StringIO
 
 from collectors.etc import grok_exporter_conf
+from collectors.etc import metric_naming
+from collectors.etc import yaml_conf
 
 COLLECTION_INTERVAL_SECONDS = 15
 processes = []
 urls_vs_patterns = {}
+
+METRIC_MAPPING = yaml_conf.load_collector_configuration('grok_metrics.yml')
 
 
 class Proc():
@@ -26,40 +32,37 @@ def launch_grokker(exporter_dir, config):
     try:
         # No need to set the setsid or do pgkill here since we know grokker does not launch any subprocesses
         proc = subprocess.Popen([exporter_dir + '/grok_exporter', '-config',
-                                config],
+                                 config],
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
                                 close_fds=True,
                                 cwd=exporter_dir)
         processes.append(Proc(proc))
 
-	with open(config, 'r') as stream:
-	    try:
-        	ycfg = yaml.load(stream)
-    	    except yaml.YAMLError as exc:
-		print("Type error: {0}".format(exc))
-        	die()
+        with open(config, 'r') as stream:
+            try:
+                ycfg = yaml.load(stream)
+            except yaml.YAMLError as exc:
+                print("Type error: {0}".format(exc))
+                die()
 
-	metrics = ycfg['metrics']
+        metrics = ycfg['metrics']
 
         patterns = []
         for metric in metrics:
             metric_name = metric['name']
-	    if metric['type'] in ('histogram','summary'):
-#		print ((metric_name + '_count'))
-		pattern = re.compile('^(%s)([^\}]*[\}]*)(\s+\d+)' % (metric_name + '_count'))
-		patterns.append(pattern)
-#		print ((metric_name + '_sum'))
-		pattern = re.compile('^(%s)([^\}]*[\}]*)(\s+\d+)' % (metric_name + '_sum'))
-		patterns.append(pattern)
-#	    print((metric_name))
-            pattern = re.compile('^(%s)([^\}]*[\}]*)(\s+\d+)' % metric_name)
+            if metric['type'] in ('histogram', 'summary'):
+                pattern = re.compile('^(%s)([^\}]*[\}]*)(\s+\d*\.*\d+)' % (metric_name + '_count'))
+                patterns.append(pattern)
+                pattern = re.compile('^(%s)([^\}]*[\}]*)(\s+\d*\.*\d+)' % (metric_name + '_sum'))
+                patterns.append(pattern)
+            pattern = re.compile('^(%s)([^\}]*[\}]*)(\s+\d*\.*\d+)' % metric_name)
             patterns.append(pattern)
+        host = ycfg['server']['host']
         port = ycfg['server']['port']
-#        print(port)
-        urls_vs_patterns['http://localhost:%d/metrics' % port] = patterns
+        urls_vs_patterns['http://%s:%d/metrics' % (host,port)] = patterns
     except Exception as e:
-#	print("Type error: {0}".format(e))
+        traceback.print_exc()
         die()
 
 
@@ -99,7 +102,7 @@ def main():
 
 def die(signum=signal.SIGTERM, stack_frame=None):
     kill_children(signum)
-    exit(13) # Signal to tcollector
+    exit(13)  # Signal to tcollector
 
 
 def kill_children(signum):
@@ -113,62 +116,55 @@ def kill_children(signum):
 
 
 def fetch_metrics():
+    def format_metric_value(value):
+        if float(value).is_integer():
+            return int(value)
+        else:
+            return "{0:.3f}".format(float(value))
+
+    def print_metric(metric_name, timestamp, value, tags):
+        print("%s %s %s %s" % (metric_name, timestamp, format_metric_value(value), tags))
+
     for (url, patterns) in urls_vs_patterns.iteritems():
         try:
             response = requests.get(url)
             timestamp = int(time.time())
-	    global buf
+            global buf
             buf = StringIO(response.text)
             found = False
-#	    print(len(patterns))
             for line in buf.readlines():
+                metric_line = ""
                 for pattern in patterns:
                     matcher = pattern.search(line)
                     if matcher is not None:  # TODO would checking for startswith be more efficient here?
-#			print('Pattern matched on ' + line)
-                        found = True
-#			print (found)
                         g = matcher.groups()
-			if g[1].startswith('_count'):
-				continue
-			elif g[1].startswith('_sum'):
-				continue
-#			print(g)
+                        if g[1].startswith('_count'):
+                            continue
+                        elif g[1].startswith('_sum'):
+                            continue
                         tags = ' '.join(g[1].replace('"', '').strip('{}').split(','))
- 			if '::_' in g[0]:
-#				print('Found pattern')
-				extratags = g[0].split('::_');
-#				print(extratags)
-#				g[0] = extratags[0]
-#				print(g[0])
-#				print('Here')
-				global finalmetricname
-				finalmetricname = extratags[0]
-#				print(finalmetricname)
-				for i, extratag in enumerate(extratags):
-					if i == 0:
-						continue;
-					elif extratag.startswith('_'):
-						finalmetricname += extratag
-					else:
-						tags += ' ' + extratag.replace('_', '=')
-				buf = '%s %s%s %s' % (finalmetricname, timestamp, g[2], tags)
-			else:
-	                        buf = '%s %s%s %s' % (g[0], timestamp, g[2], tags)
-                        sys.stdout.write(buf)
-                        sys.stdout.write('\n')
-            if not found:
-                die()
-            sys.stdout.flush()
-#	except UnboundLocalError as err:
-#	    print("Type error: {0}".format(err))
-#	except TypeError as err:
-#	    print("Type error: {0}".format(err))
+                        if '::_' in g[0]:
+                            extratags = g[0].split('::_');
+                            global finalmetricname
+                            finalmetricname = extratags[0]
+                            for i, extratag in enumerate(extratags):
+                                if i == 0:
+                                    continue;
+                                elif extratag.startswith('_'):
+                                    finalmetricname += extratag
+                                else:
+                                    tags += ' ' + extratag.replace('_', '=')
+                            print_metric(finalmetricname, timestamp, g[2], tags)
+                            metric_naming.print_if_apptuit_standard_metric(finalmetricname, METRIC_MAPPING, timestamp, format_metric_value(g[2]),
+                                                                           tags=None, tags_str=tags)
+                        else:
+                            print_metric(g[0], timestamp, g[2], tags)
+                            metric_naming.print_if_apptuit_standard_metric(g[0], METRIC_MAPPING, timestamp, format_metric_value(g[2]), tags=None,
+                                                                           tags_str=tags)
         except:
-	    print("Unexpected error:", sys.exc_info()[0])
+            print("Unexpected error:", sys.exc_info()[0])
+            traceback.print_exc()
             die()
-
 
 if __name__ == '__main__':
     main()
-

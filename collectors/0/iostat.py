@@ -72,6 +72,8 @@ import re
 import copy
 
 from collectors.lib import utils
+from collectors.etc import yaml_conf
+from collectors.etc import metric_naming
 
 COLLECTION_INTERVAL = 60  # seconds
 
@@ -96,6 +98,8 @@ FIELDS_PART = (
     "write_issued",
     "write_sectors",
 )
+
+METRIC_MAPPING = yaml_conf.load_collector_configuration('node_metrics.yml')
 
 prev_times = (0,0)
 def read_uptime():
@@ -181,6 +185,8 @@ def main():
                 for i in range(11):
                     print("%s%s %d %s dev=%s"
                           % (metric, FIELDS_DISK[i], ts, values[i+3], device))
+                    metric_naming.print_if_apptuit_standard_metric(metric + FIELDS_DISK[i], METRIC_MAPPING, ts,
+                                                                   values[i+3], tags={"dev": device}, tags_str=None)
 
                 ret = is_device(device, 0)
                 # if a device or a partition, calculate the svctm/await/util
@@ -222,8 +228,12 @@ def main():
                           % (metric, "w_await", ts, w_await, device))
                     print("%s%s %d %.2f dev=%s"
                           % (metric, "await", ts, await, device))
+                    util_val = float(util / 1000.0)
                     print("%s%s %d %.2f dev=%s"
-                          % (metric, "util", ts, float(util/1000.0), device))
+                          % (metric, "util", ts, util_val, device))
+                    metric_naming.print_if_apptuit_standard_metric(metric+"util", METRIC_MAPPING, ts,
+                                                                   format(round(util_val, 2)), tags={"dev": device},
+                                                                   tags_str=None)
 
                     prev_stats[device] = copy.deepcopy(stats)
 

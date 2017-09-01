@@ -34,6 +34,8 @@ import sys
 import time
 
 from collectors.lib import utils
+from collectors.etc import yaml_conf
+from collectors.etc import metric_naming
 
 COLLECTION_INTERVAL = 60  # seconds
 
@@ -46,6 +48,8 @@ FSTYPE_IGNORE = frozenset([
   "rpc_pipefs",
   "rootfs",
 ])
+
+METRIC_MAPPING = yaml_conf.load_collector_configuration('node_metrics.yml')
 
 def main():
   """dfstats main loop"""
@@ -120,12 +124,20 @@ def main():
 
       print("df.bytes.total %d %s mount=%s fstype=%s"
             % (ts, r.f_frsize * r.f_blocks, fs_file, fs_vfstype))
+      bused = r.f_frsize * used
       print("df.bytes.used %d %s mount=%s fstype=%s"
-            % (ts, r.f_frsize * used, fs_file, fs_vfstype))
+            % (ts, bused, fs_file, fs_vfstype))
+      metric_naming.print_if_apptuit_standard_metric("df.bytes.used", METRIC_MAPPING, ts, bused,
+                                                     tags={"mount": fs_file, "fstype": fs_vfstype}, tags_str=None)
       print("df.bytes.percentused %d %s mount=%s fstype=%s"
             % (ts, percent_used, fs_file, fs_vfstype))
+      metric_naming.print_if_apptuit_standard_metric("df.bytes.percentused", METRIC_MAPPING, ts, percent_used,
+                                                     tags={"mount": fs_file, "fstype": fs_vfstype}, tags_str=None)
+      bfree = r.f_frsize * r.f_bfree
       print("df.bytes.free %d %s mount=%s fstype=%s"
-            % (ts, r.f_frsize * r.f_bfree, fs_file, fs_vfstype))
+            % (ts, bfree, fs_file, fs_vfstype))
+      metric_naming.print_if_apptuit_standard_metric("df.bytes.free", METRIC_MAPPING, ts, bfree,
+                                                     tags={"mount": fs_file, "fstype": fs_vfstype}, tags_str=None)
 
       used = r.f_files - r.f_ffree
 

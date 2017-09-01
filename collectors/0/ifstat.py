@@ -19,6 +19,8 @@ import time
 import re
 
 from collectors.lib import utils
+from collectors.etc import yaml_conf
+from collectors.etc import metric_naming
 
 interval = 15  # seconds
 
@@ -41,6 +43,7 @@ FIELDS = ("bytes", "packets", "errs", "dropped",
           "bytes", "packets", "errs", "dropped",
           "fifo.errs", "collisions", "carrier.errs", "compressed")
 
+METRIC_MAPPING = yaml_conf.load_collector_configuration('node_metrics.yml')
 
 def main():
     """ifstat main loop"""
@@ -87,6 +90,8 @@ def main():
             for i in xrange(16):
                 print("proc.net.%s %d %s iface=%s direction=%s"
                       % (FIELDS[i], ts, stats[i], intf, direction(i)))
+                metric_naming.print_if_apptuit_standard_metric("proc.net." + FIELDS[i], METRIC_MAPPING, ts, stats[i],
+                                                               {"iface": intf, "direction": direction(i)})
 
         sys.stdout.flush()
         time.sleep(interval)
