@@ -58,6 +58,8 @@ deb:
 	cp $(VPATH)/conf/mysql.yml build/usr/local/xcollector/conf/
 	cp $(VPATH)/conf/xcollector.yml build/usr/local/xcollector/conf/
 	cp -r $(VPATH)/grok_exporter-0.2.1.linux-amd64/ build/usr/local/xcollector/
+	mv build/usr/local/xcollector/grok_exporter-0.2.1.linux-amd64/grok_exporter_deb build/usr/local/xcollector/grok_exporter-0.2.1.linux-amd64/grok_exporter
+	rm build/usr/local/xcollector/grok_exporter-0.2.1.linux-amd64/grok_exporter_rpm
 	cp $(VPATH)/tcollector.py build/usr/local/xcollector/xcollector.py
 	set -e; { \
 	  sed \
