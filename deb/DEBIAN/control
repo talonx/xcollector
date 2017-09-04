@@ -8,6 +8,6 @@ Depends: python, python-dev, python-mysqldb, python-yaml, python-requests
 Provides: xcollector
 Section: System/Monitoring
 Priority: extra
-Homepage: http://apptuit.ai/xcollector.html
+Homepage: https://apptuit.ai/xcollector
 Description: The xcollector package includes the basic collector and
  all of the dependencies these collectors need.

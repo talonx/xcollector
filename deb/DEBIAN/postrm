@@ -1,0 +1,26 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    remove)
+      	# Remove service
+        update-rc.d xcollector remove >/dev/null || true
+
+        # Remove user. Group will be removed automatically since this is the last (only) user.
+        deluser xcollector || true
+    ;;
+
+    purge)
+        # Remove logs and data
+        rm -rf /var/log/xcollector.log*
+    ;;
+
+    upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+      #No action
+    ;;
+
+    *)
+      echo "$0 called with unknown argument \`$1'" >&2
+      exit 1
+    ;;
+esac

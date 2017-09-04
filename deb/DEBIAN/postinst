@@ -1,4 +1,31 @@
+#! /bin/sh
+set -e
+
 if [ ! -L "/etc/xcollector" ]
 then
   ln -s /usr/local/xcollector/conf /etc/xcollector
 fi
+
+case "$1" in
+  configure)
+	XCOLLECTOR_USER="xcollector"
+	XCOLLECTOR_GROUP="xcollector"
+	if ! getent group "$XCOLLECTOR_GROUP" > /dev/null 2>&1 ; then
+	    addgroup --system "$XCOLLECTOR_GROUP" --quiet
+	fi
+	if ! id $XCOLLECTOR_USER > /dev/null 2>&1 ; then
+	    adduser --system --home /usr/local/xcollector --no-create-home \
+		--ingroup "$XCOLLECTOR_GROUP" --disabled-password --shell /bin/false \
+		"$XCOLLECTOR_USER"
+	fi
+
+  touch /usr/share/xcollector.log
+	chown $XCOLLECTOR_USER:$XCOLLECTOR_GROUP /usr/share/xcollector.log
+  ;;
+esac
+
+
+if [ -e "/etc/init.d/xcollector" ]; then
+	update-rc.d xcollector defaults 95 10 >/dev/null
+fi
+

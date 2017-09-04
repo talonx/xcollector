@@ -49,7 +49,7 @@ mkdir -p %{buildroot}%{tcollectordir}/collectors/lib/bbm/
 mkdir -p %{buildroot}%{tcollectordir}/collectors/etc/
 mkdir -p %{buildroot}%{grokexpdir}/patterns/
 #%{__install} -m 0755 -D %{rootdir}/bbm/lib/* %{buildroot}%{tcollectordir}/bbm/lib/
-%{__install} -m 0755 -D %{grokexprootdir}/grok_exporter %{buildroot}%{grokexpdir}/
+%{__install} -m 0755 -D %{grokexprootdir}/grok_exporter_rpm %{buildroot}%{grokexpdir}/grok_exporter
 %{__install} -m 0755 -D %{grokexprootdir}/patterns/* %{buildroot}%{grokexpdir}/patterns/
 %{__install} -m 0755 -D %{rootdir}/conf/* %{buildroot}%{tcollectordir}/conf/
 %{__install} -m 0755 -D %{srccollectors}/__init__.py %{buildroot}%{tcollectordir}/collectors/
