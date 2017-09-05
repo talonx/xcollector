@@ -1,138 +1,101 @@
-#! /usr/bin/env bash
-
+#! /bin/sh
 ### BEGIN INIT INFO
 # Provides:          xcollector
-# Required-Start:    $all
-# Required-Stop:     $remote_fs $syslog
+# Required-Start:    $network $remote_fs
+# Required-Stop:     $network $remote_fs
+# Should-Start:      opentsdb
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: Start xcollector at boot time
+# Short-Description: Starts xcollector
 ### END INIT INFO
 
-THIS_HOST=`hostname`
-PATH=/bin:/usr/bin:/sbin:/usr/sbin
-NAME=xcollector
-DESC="xcollector"
-DEFAULT=/etc/default/$NAME
+WORKING_DIR=/usr/local/xcollector
+COLLECTOR_PATH=${WORKING_DIR}/collectors
+CONFIG_DIR=${WORKING_DIR}/conf
+#The group and user need to be commented, as for xcollector, we need fallback which does not happen unless these
+#are not set, even to empty.This is required for bt-metrics.log. Once that dependency is removed, we can force
+#running as xcollector always.
+#RUN_AS_USER=
+#RUN_AS_GROUP=
 
-XCOLLECTOR_USER=root
-XCOLLECTOR_GROUP=root
-XCOLLECTOR_HOME=/usr/local/xcollector
-CONF_DIR=/etc/xcollector
-WORK_DIR=$XCOLLECTOR_HOME
-DATA_DIR=/var/lib/grafana
-PLUGINS_DIR=/var/lib/grafana/plugins
-LOG_FILE=/var/log/xcollector.log
-CONF_FILE=$CONF_DIR/grafana.ini
-MAX_OPEN_FILES=10000
-PID_FILE=/var/run/$NAME.pid
-DAEMON=$XCOLLECTOR_HOME/xcollector.py
-
-umask 0027
-
-if [ -z "$DAEMON_OPTS" ]; then
-  DAEMON_OPTS="-D"
-  DAEMON_OPTS="$DAEMON_OPTS -t host=$THIS_HOST -P $PID_FILE"
-fi
+PYTHONPATH="$PYTHONPATH:${WORKING_DIR}"
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+DAEMON="${WORKING_DIR}/xcollector.py"
+EXTRA_TAGS=""
 
 . /lib/lsb/init-functions
 
-if [ -r /etc/default/rcS ]; then
-	. /etc/default/rcS
+if [ -r /etc/default/xcollector ]; then
+    . /etc/default/xcollector
 fi
 
-# overwrite settings from default file
-if [ -f "$DEFAULT" ]; then
-	. "$DEFAULT"
-fi
+PIDFILE=${PIDFILE-"/var/run/xcollector.pid"}
+LOGFILE=${LOGFILE-"/var/log/xcollector.log"}
+THIS_HOST=`hostname`
+RUN_AS_USER=${RUN_AS_USER-xcollector}
+RUN_AS_GROUP=${RUN_AS_GROUP-xcollector}
 
-function checkUser() {
-  if [ `id -u` -ne 0 ]; then
-  	echo "You need root privileges to run this script"
-  	exit 4
-  fi
+EXTRA_TAGS_OPTS=""
+for TV in $EXTRA_TAGS; do
+    EXTRA_TAGS_OPTS=${EXTRA_TAGS_OPTS}" -t ${TV}"
+done
+
+fix_perms() {
+    local file=$1
+        if [ ! -f "$file" ]; then
+            touch "$file"
+        fi
+        chown $RUN_AS_USER:$RUN_AS_GROUP "$file"
 }
 
-case "$1" in
-  start)
-  checkUser
-	log_daemon_msg "Starting $DESC"
+case $1 in
+    start)
+        log_daemon_msg "Starting xcollector"
+        fix_perms $LOGFILE
+        fix_perms $PIDFILE
+        find "$COLLECTOR_PATH" -name '*.pyc' -delete
 
-	pid=`pidofproc -p $PID_FILE xcollector`
-	if [ -n "$pid" ] ; then
-		log_begin_msg "Already running."
-		log_end_msg 0
-		exit 0
-	fi
+        taskset=""
+        if [ -n "$CPU_LIST" ]; then
+            if which taskset &>/dev/null; then
+                taskset="taskset -c $CPU_LIST"
+            else
+                log_warning_msg "taskset not found, xcollector can't be"
+                    " pinned to $CPU_LIST"
+            fi
+        fi
 
-	touch "$PID_FILE" && chown "$XCOLLECTOR_USER":"$XCOLLECTOR_GROUP" "$PID_FILE"
+        PYTHONPATH=$PYTHONPATH $taskset start-stop-daemon --start --quiet -u $RUN_AS_USER\
+            --pidfile "$PIDFILE" --chuid $RUN_AS_USER:$RUN_AS_GROUP\
+            --startas $DAEMON -- \
+            -t host=$THIS_HOST \
+            -P "$PIDFILE" -D $EXTRA_TAGS_OPTS
 
-  if [ -n "$MAX_OPEN_FILES" ]; then
-		ulimit -n $MAX_OPEN_FILES
-	fi
+        log_end_msg $?
+        ;;
 
-	# Start Daemon
-	start-stop-daemon --start -b --chdir "$WORK_DIR" --user "$XCOLLECTOR_USER" -c "$XCOLLECTOR_USER" --pidfile "$PID_FILE" --startas /bin/bash -- -c "exec $DAEMON $DAEMON_OPTS > $LOG_FILE 2>&1"
-	return=$?
-	echo $return
-	if [ $return -eq 0 ]
-	then
-	  sleep 1
+    stop)
+        log_daemon_msg "Stopping xcollector" "xcollector"
+        if [ ! -f "$PIDFILE" ]; then
+            log_failure_msg "$PIDFILE doesn't exist. xcollector not running?"
+            exit 0
+        fi
+        killproc -p "$PIDFILE" "$DAEMON" && rm -f "$PIDFILE"
+        rv=$?
+        log_end_msg 0
+        exit $rv
+        ;;
+    restart)
+        $0 stop && $0 start
+        ;;
 
-    # check if pid file has been written two
-	  if ! [[ -s $PID_FILE ]]; then
-	    log_end_msg 1
-	    exit 1
-	  fi
+    status)
+        status_of_proc -p $PIDFILE "$DAEMON" "xcollector"
+        exit $?
+        ;;
 
-		i=0
-		timeout=10
-		# Wait for the process to be properly started before exiting
-		until { cat "$PID_FILE" | xargs kill -0; } >/dev/null 2>&1
-		do
-			sleep 1
-			i=$(($i + 1))
-      if [ $i -gt $timeout ]; then
-			  log_end_msg 1
-			  exit 1
-			fi
-		done
-  fi
-  log_end_msg $return
-	;;
-  stop)
-  checkUser
-	log_daemon_msg "Stopping $DESC"
-
-	if [ -f "$PID_FILE" ]; then
-		start-stop-daemon --stop --pidfile "$PID_FILE" \
-			--user "$XCOLLECTOR_USER" \
-			--retry=TERM/20/KILL/5 >/dev/null
-		if [ $? -eq 1 ]; then
-			log_progress_msg "$DESC is not running but pid file exists, cleaning up"
-		elif [ $? -eq 3 ]; then
-			PID="`cat $PID_FILE`"
-			log_failure_msg "Failed to stop $DESC (pid $PID)"
-			exit 1
-		fi
-		rm -f "$PID_FILE"
-	else
-		log_progress_msg "(not running)"
-	fi
-	log_end_msg 0
-	;;
-  status)
-	status_of_proc -p $PID_FILE grafana grafana && exit 0 || exit $?
-    ;;
-  restart|force-reload)
-	if [ -f "$PID_FILE" ]; then
-		$0 stop
-		sleep 1
-	fi
-	$0 start
-	;;
-  *)
-	log_success_msg "Usage: $0 {start|stop|restart|status}"
-	exit 3
-	;;
+    *)
+        echo "Usage: $0 {start|stop|restart|status}"
+        exit 2
+        ;;
 esac
