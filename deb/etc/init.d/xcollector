@@ -17,7 +17,6 @@ CONFIG_DIR=${WORKING_DIR}/conf
 #running as xcollector always.
 #RUN_AS_USER=
 #RUN_AS_GROUP=
-TSD_HOSTS=localhost
 
 PYTHONPATH="$PYTHONPATH:${WORKING_DIR}"
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
@@ -52,10 +51,6 @@ fix_perms() {
 case $1 in
     start)
         log_daemon_msg "Starting xcollector"
-        if [ -z "$TSD_HOSTS" ]; then
-            log_failure_msg "TSD_HOSTS is empty"
-            exit 6
-        fi
         fix_perms $LOGFILE
         fix_perms $PIDFILE
         find "$COLLECTOR_PATH" -name '*.pyc' -delete
