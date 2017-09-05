@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-from collectors.etc import metric_naming
-
 import platform
 import socket
 import subprocess
 import sys
 import time
 
+from collectors.etc import yaml_conf
+from collectors.etc import metric_naming
 
 COLLECTION_INTERVAL = 15  # seconds
 
@@ -40,190 +40,7 @@ DATASETS = {
   11211: "default",  # XXX StumbleUpon specific mapping of port-to-dataset
   }
 
-MEMCACHE_NAME_MAPPING = {
-    "metrics" : {
-        "curr_connections": {
-            "standard_name": "connections",
-            "tags": {
-                "type": "active",
-                "mtype": "gauge",
-                "unit": "conn"
-            }
-        },
-        "listen_disabled_num": {
-            "standard_name": "connection_counters",
-            "tags": {
-                "state": "rejected",
-                "mtype": "counter",
-                "unit": "conn"
-            }
-        },
-        "conn_yields": {
-            "standard_name": "connection_counters",
-            "tags": {
-                "state": "yield",
-                "mtype": "counter",
-                "unit": "conn"
-            }
-        },
-        "curr_items": {
-            "standard_name": "cache_num_items",
-            "tags": {
-                "mtype": "gauge",
-                "unit": "item"
-            }
-        },
-        "cas_hits": {
-            "standard_name": "cache_counters",
-            "tags": {
-                "operation": "compare_and_set",
-                "op_result": "hit",
-                "mtype": "counter",
-                "unit": "req"
-            }
-        },
-        "decr_hits": {
-            "standard_name": "cache_counters",
-            "tags": {
-                "operation": "decrement",
-                "op_result": "hit",
-                "mtype": "counter",
-                "unit": "req"
-            }
-        },
-        "incr_hits": {
-            "standard_name": "cache_counters",
-            "tags": {
-                "operation": "increment",
-                "op_result": "hit",
-                "mtype": "counter",
-                "unit": "req"
-            }
-        },
-        "get_hits": {
-            "standard_name": "cache_counters",
-            "tags": {
-                "operation": "get",
-                "op_result": "hit",
-                "mtype": "counter",
-                "unit": "req"
-            }
-        },
-        "delete_hits": {
-            "standard_name": "cache_counters",
-            "tags": {
-                "operation": "delete",
-                "op_result": "hit",
-                "mtype": "counter",
-                "unit": "req"
-            }
-        },
-        "cas_misses": {
-            "standard_name": "cache_counters",
-            "tags": {
-                "operation": "compare_and_set",
-                "op_result": "miss",
-                "mtype": "counter",
-                "unit": "req"
-            }
-        },
-        "decr_misses": {
-            "standard_name": "cache_counters",
-            "tags": {
-                "operation": "decrement",
-                "op_result": "miss",
-                "mtype": "counter",
-                "unit": "req"
-            }
-        },
-        "incr_misses": {
-            "standard_name": "cache_counters",
-            "tags": {
-                "operation": "increment",
-                "op_result": "miss",
-                "mtype": "counter",
-                "unit": "req"
-            }
-        },
-        "get_misses": {
-            "standard_name": "cache_counters",
-            "tags": {
-                "operation": "get",
-                "op_result": "miss",
-                "mtype": "counter",
-                "unit": "req"
-            }
-        },
-        "delete_misses": {
-            "standard_name": "cache_counters",
-            "tags": {
-                "operation": "delete",
-                "op_result": "miss",
-                "mtype": "counter",
-                "unit": "req"
-            }
-        },
-        "bytes": {
-            "standard_name": "cache_sizes",
-            "tags": {
-                "type": "occupied",
-                "mtype": "gauge",
-                "unit": "B"
-            }
-        },
-        "limit_maxbytes": {
-            "standard_name": "cache_sizes",
-            "tags": {
-                "type": "allocated",
-                "mtype": "gauge",
-                "unit": "B"
-            }
-        },
-        "evictions": {
-            "standard_name": "cache_counters",
-            "tags": {
-                "operation": "eviction",
-                "mtype": "counter",
-                "unit": "event"
-            }
-        },
-        "bytes_read": {
-            "standard_name": "network_traffic",
-            "tags": {
-                "direction": "in",
-                "mtype": "counter",
-                "unit": "B"
-            }
-        },
-        "bytes_written": {
-            "standard_name": "network_traffic",
-            "tags": {
-                "direction": "out",
-                "mtype": "counter",
-                "unit": "B"
-            }
-        },
-        "rusage_system": {
-            "standard_name": "cpu_counters",
-            "tags": {
-                "usage_type": "system",
-                "mtype": "counter",
-                "unit": "s"
-            }
-        },
-        "rusage_user": {
-            "standard_name": "cpu_counters",
-            "tags": {
-                "usage_type": "user",
-                "mtype": "counter",
-                "unit": "s"
-            }
-        }
-    },
-    "tags": {
-        "service": "memcache"
-    }
-}
+MEMCACHE_NAME_MAPPING = yaml_conf.load_collector_configuration('memcached_metrics.yml')
 
 def find_memcached():
   """Yields all the ports that memcached is listening to, according to ps."""
@@ -333,8 +150,9 @@ def main(args):
         print_stat(stat, dataset)
 
       for stat in stats[dataset]:
-          metric_naming.print_if_apptuit_standard_metric(stat, MEMCACHE_NAME_MAPPING, stats[dataset]["time"],
-                                                         stats[dataset][stat], {"dataset" : dataset})
+          metric_naming.print_if_apptuit_standard_metric("memcache."+stat, MEMCACHE_NAME_MAPPING,
+                                                         stats[dataset]["time"], stats[dataset][stat],
+                                                         tags={"dataset" : dataset}, tags_str=None)
 
       for stat in stats[dataset]:
         if (stat not in IMPORTANT_STATS_SET      # Don't re-print them.

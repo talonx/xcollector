@@ -21,10 +21,13 @@ import time
 import glob
 
 from collectors.lib import utils
+from collectors.etc import yaml_conf
+from collectors.etc import metric_naming
 
 COLLECTION_INTERVAL = 15  # seconds
 NUMADIR = "/sys/devices/system/node"
 
+METRIC_MAPPING = yaml_conf.load_collector_configuration('node_metrics.yml')
 
 def find_sysfs_numa_stats():
     """Returns a possibly empty list of NUMA stat file names."""
@@ -117,6 +120,7 @@ def main():
             m = re.match("(\S+)\s+(\S+)", line)
             if m:
                 print "proc.uptime.total %d %s" % (ts, m.group(1))
+                metric_naming.print_if_apptuit_standard_metric("proc.uptime.total", METRIC_MAPPING, ts, m.group(1))
                 print "proc.uptime.now %d %s" % (ts, m.group(2))
 
         # proc.meminfo
@@ -133,6 +137,7 @@ def main():
                 name = re.sub("\W", "_", m.group(1)).lower().strip("_")
                 print ("proc.meminfo.%s %d %s"
                         % (name, ts, value))
+                metric_naming.print_if_apptuit_standard_metric("proc.meminfo." + name, METRIC_MAPPING, ts, value)
 
         # proc.vmstat
         f_vmstat.seek(0)
@@ -144,6 +149,8 @@ def main():
             if m.group(1) in ("pgpgin", "pgpgout", "pswpin",
                               "pswpout", "pgfault", "pgmajfault"):
                 print "proc.vmstat.%s %d %s" % (m.group(1), ts, m.group(2))
+                metric_naming.print_if_apptuit_standard_metric("proc.vmstat."+m.group(1), METRIC_MAPPING, ts,
+                                                               m.group(2))
 
         # proc.stat
         f_stat.seek(0)
@@ -168,13 +175,19 @@ def main():
                 for value, field_name in zip(fields, cpu_types):
                     print "proc.stat.cpu%s %d %s type=%s%s" % (metric_percpu,
                         ts, value, field_name, tags)
+                    metric_naming.print_if_apptuit_standard_metric("proc.stat.cpu"+metric_percpu, METRIC_MAPPING, ts,
+                                                                   value, tags={"type": field_name}, tags_str=tags)
             elif m.group(1) == "intr":
+                intr = m.group(2).split()[0]
                 print ("proc.stat.intr %d %s"
-                        % (ts, m.group(2).split()[0]))
+                       % (ts, intr))
+                metric_naming.print_if_apptuit_standard_metric("proc.stat.intr", METRIC_MAPPING, ts, intr)
             elif m.group(1) == "ctxt":
                 print "proc.stat.ctxt %d %s" % (ts, m.group(2))
+                metric_naming.print_if_apptuit_standard_metric("proc.stat.ctxt", METRIC_MAPPING, ts, m.group(2))
             elif m.group(1) == "processes":
                 print "proc.stat.processes %d %s" % (ts, m.group(2))
+                metric_naming.print_if_apptuit_standard_metric("proc.stat.processes", METRIC_MAPPING, ts, m.group(2))
             elif m.group(1) == "procs_blocked":
                 print "proc.stat.procs_blocked %d %s" % (ts, m.group(2))
 
@@ -185,8 +198,11 @@ def main():
             if not m:
                 continue
             print "proc.loadavg.1min %d %s" % (ts, m.group(1))
+            metric_naming.print_if_apptuit_standard_metric("proc.loadavg.1min", METRIC_MAPPING, ts, m.group(1))
             print "proc.loadavg.5min %d %s" % (ts, m.group(2))
+            metric_naming.print_if_apptuit_standard_metric("proc.loadavg.5min", METRIC_MAPPING, ts, m.group(2))
             print "proc.loadavg.15min %d %s" % (ts, m.group(3))
+            metric_naming.print_if_apptuit_standard_metric("proc.loadavg.15min", METRIC_MAPPING, ts, m.group(3))
             print "proc.loadavg.runnable %d %s" % (ts, m.group(4))
             print "proc.loadavg.total_threads %d %s" % (ts, m.group(5))
 

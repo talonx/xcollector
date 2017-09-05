@@ -1,0 +1,78 @@
+global:
+  metrics_spec_version: 1
+metrics:
+  proc.uptime.total:
+    standard_name: node.uptime.seconds.count
+    description: "Node uptime in seconds. (counter)"
+  proc.stat.cpu.percpu:
+    standard_name: node.cpu.ticks.count
+    description: "Node cpu measured in incrementing ticks. (counter)"
+  proc.loadavg.1min:
+    standard_name: node.cpu.load.avg_1m
+    description: "Node CPU load average as measured in the last 1 minute. (gauge)"
+  proc.loadavg.5min:
+    standard_name: node.cpu.load.avg_5m
+    description: "Node CPU load average as measured in the last 5 minute. (gauge)"
+  proc.loadavg.15min:
+    standard_name: node.cpu.load.avg_15m
+    description: "Node CPU load average as measured in the last 15 minute. (gauge)"
+  proc.meminfo.memtotal:
+    standard_name: node.memory.total.bytes
+    description: "Node total memory available in bytes. (gauge)"
+  proc.meminfo.memfree:
+    standard_name: node.memory.bytes
+    description: "Free memory on node in bytes. (gauge)"
+    tags:
+      state: free
+  proc.net.bytes:
+    standard_name: node.network.bytes.count
+    description: >
+                 "Number of bytes the node in question has read or written from/to the network, measured per network
+                 interface (identified by 'iface' tag) & demarcated by values of 'direction' tag (in|out). (counter)"
+  df.bytes.percentused:
+    standard_name: node.disk.used.percent
+    description: >
+                 "Disk usage on the node measured per 'mount' (tag) point and expressed as a percentage of
+                 total available space on the mounted device. (gauge)"
+  df.bytes.free:
+    standard_name: node.disk.bytes
+    description: "Disk free space on the node measured per 'mount' point in bytes. (gauge)"
+    tags:
+      state: free
+  df.bytes.used:
+    standard_name: node.disk.bytes
+    description: "Disk space usage on the node measured per 'mount' point in bytes. (gauge)"
+    tags:
+      state: used
+  proc.stat.processes:
+    standard_name: node.processes
+    description: "Number of processes launched on the node at a given time. (gauge)"
+  proc.stat.ctxt:
+    standard_name: node.process.context_switches
+    description: "Number of context switches happening on the node at a given time. (gauge)"
+  proc.stat.intr:
+    standard_name: node.process.interrupts
+    description: "Number of interrupts on the node at a given time. (gauge)"
+  iostat.disk.util:
+    standard_name: node.disk.uptime.percent
+    description: >
+                 "Node's disk utility expressed per 'device' as percent of total uptime of the node spent in issuing
+                 I/O requests to the device in question. (gauge)"
+  proc.meminfo.swaptotal:
+    standard_name: node.swap.total.bytes
+    description: "Total swap space available on the node measured in bytes. (gauge)"
+  proc.meminfo.swapfree:
+    standard_name: node.swap.bytes
+    description: "Amount of swap space that is free / un-used on the node measured in bytes. (gauge)"
+    tags:
+      state: free
+  proc.vmstat.pswpin:
+    standard_name: node.swap.bytes_per_second
+    description: "Amount of data being read in from swap partition measured in bytes per second. (gauge)"
+    tags:
+      direction: in
+  proc.vmstat.pswpout:
+    standard_name: node.swap.bytes_per_second
+    description: "Amount of data being written to swap partition measured in bytes per second. (gauge)"
+    tags:
+      direction: out

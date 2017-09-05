@@ -47,7 +47,7 @@ def get_defaults():
         This is called by the OptionParser.
     """
 
-    defaults = TCOLLECTOR_CONF['config_defaults']
+    defaults = TCOLLECTOR_CONF['config']
     defaults['pidfile'] = "/var/run/xcollector.pid"
     defaults['no_tcollector_stats'] = False
     defaults['evictinterval'] = 6000
@@ -59,15 +59,18 @@ def get_defaults():
     defaults['http_username'] = defaults['access_token']
     defaults['http_password'] = True
     defaults['reconnectinterval'] = 0
-    defaults['host'] = "api.apptuit.ai"
-    defaults['port'] = 443
+    if 'host' not in defaults:
+        defaults['host'] = "api.apptuit.ai"
+    if 'port' not in defaults:
+        defaults['port'] = 443
     defaults['http'] = True
     defaults['http_api_path'] = "api/put"
     defaults['tags'] = []
     defaults['remove_inactive_collectors'] = False
     defaults['backup_count'] = defaults['log_backup_count']
     defaults["cdir"] = "/usr/local/xcollector/collectors"
-    defaults['ssl'] = True
+    if 'ssl' not in defaults:
+        defaults['ssl'] = True
     defaults['stdin'] = False
     defaults['daemonize'] = True
     defaults['hosts'] = False

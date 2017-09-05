@@ -1,0 +1,373 @@
+global:
+  metrics_spec_version: 1
+metrics:
+  mysql.queries:
+    standard_name: mysql.queries.count
+    description: "Total number of queries executed on this mysql instance. (counter)"
+  mysql.slow_queries:
+    standard_name: mysql.queries.slow_queries.count
+    description: "Total number of slow queries executed on this mysql instance. (counter)"
+  mysql.sort_merge_passes:
+    standard_name: mysql.queries.sort.merge_passes.count
+    description: "Total number of merge passes it took for sorting during query execution. (counter)"
+  mysql.sort_range:
+    standard_name: mysql.queries.sort.count
+    description: "The number of sorts that were done using ranges. (counter)"
+    tags:
+      sort_type: "range_sort"
+  mysql.sort_scan:
+    standard_name: mysql.queries.sort.count
+    description: "The number of sorts that were done by scanning the table. (counter)"
+    tags:
+      sort_type: "table_scan"
+  mysql.sort_rows:
+    standard_name: mysql.queries.sort.rows.count
+    description: "The number of sorted rows. (counter)"
+  mysql.qcache_free_blocks:
+    standard_name: mysql.queries.cache.blocks
+    description: "The number of free memory blocks in the query cache. (gauge)"
+    tags:
+      state: "free"
+  mysql.qcache_total_blocks:
+    standard_name: mysql.queries.cache.blocks.total
+    description: "The total number of blocks in the query cache. (gauge)"
+  mysql.qcache_hits:
+    standard_name: mysql.queries.cache.hits.count
+    description: "The number of query cache hits. (counter)"
+  mysql.qcache_inserts:
+    standard_name: mysql.queries.cache.inserts.count
+    description: "The number of queries added to the query cache. (counter)"
+  mysql.qcache_lowmem_prunes:
+    standard_name: mysql.queries.cache.lowmem_prunes.count
+    description: "The number of queries that were deleted from the query cache because of low memory. (counter)"
+  mysql.qcache_not_cached:
+    standard_name: mysql.queries.cache.not_cached.count
+    description: "The number of noncached queries (not cacheable, or not cached due to the query_cache_type setting). (counter)"
+  mysql.qcache_queries_in_cache:
+    standard_name: mysql.queries.cache.queries_in_cache.count
+    description: "The number of queries registered in the query cache. (counter)"
+  mysql.connections:
+    standard_name: mysql.connections.total.count
+    description: "The number of connection attempts (successful or not) to the MySQL server. (counter)"
+  mysql.aborted_connects:
+    standard_name: mysql.connections.count
+    description: "Total number of slow queries executed on this mysql instance. (counter)"
+    tags:
+      state: "aborted"
+  mysql.aborted_clients:
+    standard_name: mysql.connections.aborted_clients.count
+    description: "The number of connections that were aborted because the client died without closing the connection properly. (counter)"
+  mysql.connection_errors_accept:
+    standard_name: mysql.connections.error.count
+    description: "The number of errors that occurred during calls to accept() on the listening port. (counter)"
+    tags:
+      error_type: "accept"
+  mysql.connection_errors_internal:
+    standard_name: mysql.connections.error.count
+    description: "The number of connections refused due to internal errors in the server, such as failure to start a new thread or an out-of-memory condition. (counter)"
+    tags:
+      error_type: "internal"
+  mysql.connection_errors_max_connections:
+    standard_name: mysql.connections.error.count
+    description: "The number of connections refused because the server max_connections limit was reached. (counter)"
+    tags:
+      error_type: "connection_limit_reached"
+  mysql.connection_errors_peer_addr:
+    standard_name: mysql.connections.error.count
+    description: "The number of errors that occurred while searching for connecting client IP addresses. (counter)"
+  mysql.connection_errors_select:
+    standard_name: mysql.connections.error.count
+    description: "The number of errors that occurred during calls to select() or poll() on the listening port. (Failure of this operation does not necessarily means a client connection was rejected.). (counter)"
+  mysql.connection_errors_tcpwrap:
+    standard_name: mysql.connections.error.count
+    description: "The number of connections refused by the libwrap library. (counter)"
+  mysql.threads_created:
+    standard_name: mysql.threads.count
+    description: "The number of threads created to handle connections. If Threads_created is big, you may want to increase the thread_cache_size value. The cache miss rate can be calculated as Threads_created/Connections. (counter)"
+  mysql.threads_cached:
+    standard_name: mysql.threads.cached
+    description: "The number of threads in the thread cache. (gauge)"
+  mysql.threads_running:
+    standard_name: mysql.threads.running
+    description: "The number of threads that are not sleeping. (gauge)"
+  mysql.threads_connected:
+    standard_name: mysql.threads.connected
+    description: "The number of currently open connections. (gauge)"
+  mysql.bytes_sent:
+    standard_name: mysql.network.bytes.count
+    description: "The number of bytes sent to all clients. (counter)"
+    tags:
+      direction: "out"
+  mysql.bytes_received:
+    standard_name: mysql.network.bytes.count
+    description: "The number of bytes received from all clients. (counter)"
+    tags:
+      direction: "in"
+  mysql.com_select:
+    standard_name: mysql.commands.count
+    description: "Number of times select statement has been executed. (counter)"
+    tags:
+      command: "select"
+  mysql.com_insert:
+    standard_name: mysql.commands.count
+    description: "Number of times insert statement has been executed. (counter)"
+    tags:
+      command: "insert"
+  mysql.com_insert_select:
+    standard_name: mysql.commands.count
+    description: "Number of times insert by select from... statement has been executed. (counter)"
+    tags:
+      command: "insert_select"
+  mysql.com_update:
+    standard_name: mysql.commands.count
+    description: "Number of times update statement has been executed. (counter)"
+    tags:
+      command: "update"
+  mysql.com_update_multi:
+    standard_name: mysql.commands.count
+    description: "Number of times update statement involving multiple tables has been executed. (counter)"
+    tags:
+      command: "update_multi"
+  mysql.com_delete:
+    standard_name: mysql.commands.count
+    description: "Number of times delete statement has been executed. (counter)"
+    tags:
+      command: "delete"
+  mysql.com_delete_multi:
+    standard_name: mysql.commands.count
+    description: "Number of times delete statement involving multiple tables has been executed. (counter)"
+    tags:
+      command: "delete_multi"
+  mysql.com_commit:
+    standard_name: mysql.commands.count
+    description: "Number of times commit statement has been executed. (counter)"
+    tags:
+      command: "commit"
+  mysql.com_begin:
+    standard_name: mysql.commands.count
+    description: "Number of times a stored procedure / PL-SQL block has been executed. (counter)"
+    tags:
+      command: "begin"
+  mysql.select_scan:
+    standard_name: mysql.commands.select.count
+    description: "The number of joins that did a full scan of the first table. (counter)"
+    tags:
+      select_type: "scan"
+  mysql.select_full_join:
+    standard_name: mysql.commands.select.count
+    description: "The number of joins that perform table scans because they do not use indexes. If this value is not 0, you should carefully check the indexes of your tables. (counter)"
+    tags:
+      select_type: "full_join"
+  mysql.select_full_range_join:
+    standard_name: mysql.commands.select.count
+    description: "The number of joins that used a range search on a reference table. (counter)"
+    tags:
+      select_type: "full_range_join"
+  mysql.select_range:
+    standard_name: mysql.commands.select.count
+    description: "The number of joins that used ranges on the first table. This is normally not a critical issue even if the value is quite large. (counter)"
+    tags:
+      select_type: "range"
+  mysql.select_range_check:
+    standard_name: mysql.commands.select.count
+    description: "The number of joins without keys that check for key usage after each row. If this is not 0, you should carefully check the indexes of your tables. (counter)"
+    tags:
+      select_type: "range_check"
+  mysql.handler_commit:
+    standard_name: mysql.handlers.count
+    description: "The number of internal COMMIT statements. (counter)"
+    tags:
+      handler: "commit"
+  mysql.handler_delete:
+    standard_name: mysql.handlers.count
+    description: "The number of times that rows have been deleted from tables. (counter)"
+    tags:
+      handler: "delete"
+  mysql.handler_discover:
+    standard_name: mysql.handlers.count
+    description: "Indicates the number of times that tables have been discovered using NDBCLUSTER storage engine.
+    (counter)"
+    tags:
+      handler: "discover"
+  mysql.handler_prepare:
+    standard_name: mysql.handlers.count
+    description: "A counter for the prepare phase of two-phase commit operations. (counter)"
+    tags:
+      handler: "prepare"
+  mysql.handler_read_first:
+    standard_name: mysql.handlers.count
+    description: "The number of times the first entry in an index was read. If this value is high, it suggests that the server is doing a lot of full index scans; for example, SELECT col1 FROM foo, assuming that col1 is indexed. (counter)"
+    tags:
+      handler: "read_first"
+  mysql.handler_read_key:
+    standard_name: mysql.handlers.count
+    description: "The number of requests to read a row based on a key. If this value is high, it is a good indication that your tables are properly indexed for your queries. (counter)"
+    tags:
+      handler: "read_key"
+  mysql.handler_read_last:
+    standard_name: mysql.handlers.count
+    description: "The number of requests to read the last key in an index. With ORDER BY, the server will issue a first-key request followed by several next-key requests, whereas with ORDER BY DESC, the server will issue a last-key request followed by several previous-key requests. (counter)"
+    tags:
+      handler: "read_last"
+  mysql.handler_read_next:
+    standard_name: mysql.handlers.count
+    description: "The number of requests to read the next row in key order. This value is incremented if you are querying an index column with a range constraint or if you are doing an index scan. (counter)"
+    tags:
+      handler: "read_next"
+  mysql.handler_read_prev:
+    standard_name: mysql.handlers.count
+    description: "The number of requests to read the previous row in key order. This read method is mainly used to optimize ORDER BY ... DESC. (counter)"
+    tags:
+      handler: "read_prev"
+  mysql.handler_read_rnd:
+    standard_name: mysql.handlers.count
+    description: "The number of requests to read a row based on a fixed position. This value is high if you are doing a lot of queries that require sorting of the result. You probably have a lot of queries that require MySQL to scan entire tables or you have joins that do not use keys properly. (counter)"
+    tags:
+      handler: "read_rnd"
+  mysql.handler_read_rnd_next:
+    standard_name: mysql.handlers.count
+    description: "The number of requests to read the next row in the data file. This value is high if you are doing a lot of table scans. Generally this suggests that your tables are not properly indexed or that your queries are not written to take advantage of the indexes you have. (counter)"
+    tags:
+      handler: "read_rnd_next"
+  mysql.handler_rollback:
+    standard_name: mysql.handlers.count
+    description: "The number of requests for a storage engine to perform a rollback operation. (counter)"
+    tags:
+      handler: "rollback"
+  mysql.handler_savepoint:
+    standard_name: mysql.handlers.count
+    description: "The number of requests for a storage engine to place a savepoint. (counter)"
+    tags:
+      handler: "savepoint"
+  mysql.handler_savepoint_rollback:
+    standard_name: mysql.handlers.count
+    description: "The number of requests for a storage engine to roll back to a savepoint. (counter)"
+    tags:
+      handler: "savepoint_rollback"
+  mysql.handler_update:
+    standard_name: mysql.handlers.count
+    description: "The number of requests to update a row in a table. (counter)"
+    tags:
+      handler: "update"
+  mysql.handler_write:
+    standard_name: mysql.handlers.count
+    description: "The number of requests to insert a row in a table. (counter)"
+    tags:
+      handler: "write"
+  mysql.table_locks_immediate:
+    standard_name: mysql.table_locks.count
+    description: "The number of times that a request for a table lock could be granted immediately. (counter)"
+    tags:
+      status: "immediate"
+  mysql.table_locks_waited:
+    standard_name: mysql.table_locks.count
+    description: "The number of times that a request for a table lock could not be granted immediately and a wait was needed. If this is high and you have performance problems, you should first optimize your queries, and then either split your table or tables or use replication. (counter)"
+    tags:
+      status: "waited"
+  mysql.innodb_row_lock_time:
+    standard_name: mysql.innodb.row_locks.milliseconds.count
+    description: "he total time spent in acquiring row locks for InnoDB tables, in milliseconds. (counter)"
+  mysql.innodb_buffer_pool_read_requests:
+    standard_name: mysql.innodb.buffer_pool.count
+    description: "The number of logical read requests. (counter)"
+    tags:
+      state: "read_req"
+  mysql.innodb_buffer_pool_reads:
+    standard_name: mysql.innodb.buffer_pool.count
+    description: "The number of logical reads that InnoDB could not satisfy from the buffer pool, and had to read directly from disk. (counter)"
+    tags:
+      state: "read"
+  mysql.innodb_buffer_pool_write_requests:
+    standard_name: mysql.innodb.buffer_pool.count
+    description: "The number of writes done to the InnoDB buffer pool. (counter)"
+    tags:
+      state: "write_req"
+  mysql.innodb_buffer_pool_pages_flushed:
+    standard_name: mysql.innodb.buffer_pool.pages
+    description: "The number of requests to flush pages from the InnoDB buffer pool. (counter)"
+    tags:
+      state: "page_flush"
+  mysql.innodb_buffer_pool_pages_free:
+    standard_name: mysql.innodb.buffer_pool.pages
+    description: "The number of free pages in the InnoDB buffer pool. (counter)"
+    tags:
+      state: "free"
+  mysql.innodb_buffer_pool_pages_dirty:
+    standard_name: mysql.innodb.buffer_pool.pages
+    description: "The current number of dirty pages in the InnoDB buffer pool. (counter)"
+    tags:
+      state: "dirty"
+  mysql.innodb_buffer_pool_pages_data:
+    standard_name: mysql.innodb.buffer_pool.pages
+    description: "The number of pages in the InnoDB buffer pool containing data. The number includes both dirty and clean pages. (counter)"
+    tags:
+      state: "data"
+  mysql.innodb_buffer_pool_pages_misc:
+    standard_name: mysql.innodb.buffer_pool.pages
+    description: "The number of pages in the InnoDB buffer pool that are busy because they have been allocated for administrative overhead, such as row locks or the adaptive hash index. (counter)"
+    tags:
+      state: "misc"
+  mysql.innodb_buffer_pool_pages_total:
+    standard_name: mysql.innodb.buffer_pool.pages.total
+    description: "The total size of the InnoDB buffer pool, in pages. (counter)"
+  mysql.innodb_page_size:
+    standard_name: mysql.innodb.page_size.bytes
+    description: "InnoDB page size (default 16KB). Many values are counted in pages; the page size enables them to be easily converted to bytes. (counter)"
+  mysql.innodb_buffer_pool_wait_free:
+    standard_name: mysql.innodb.buffer_pool.wait_free.count
+    description: "Number of times innodb had to free up pages by flushing dirty pages. (counter)"
+  mysql.innodb.locks.os_waits:
+    standard_name: mysql.innodb.locks.os_waits.count
+    description: "indicates the number of operating system waits. (counter)"
+  mysql.innodb.locks.rounds:
+    standard_name: mysql.innodb.locks.rounds.count
+    description: "indicates the number of spinlock rounds. (counter)"
+  mysql.innodb.locks.spin_waits:
+    standard_name: mysql.innodb.locks.mutex_spin_waits.count
+    description: "Indicates how many times the spinlock had to run. (counter)"
+  mysql.innodb_rows_deleted:
+    standard_name: mysql.innodb.row_operations.count
+    description: "The number of rows deleted from InnoDB tables. (counter)"
+    tags:
+      operation: "delete"
+  mysql.innodb_rows_inserted:
+    standard_name: mysql.innodb.row_operations.count
+    description: "The number of rows inserted into InnoDB tables. (counter)"
+    tags:
+      operation: "insert"
+  mysql.innodb_rows_read:
+    standard_name: mysql.innodb.row_operations.count
+    description: "The number of rows read from InnoDB tables. (counter)"
+    tags:
+      operation: "read"
+  mysql.innodb_rows_updated:
+    standard_name: mysql.innodb.row_operations.count
+    description: "The number of rows updated in InnoDB tables. (counter)"
+    tags:
+      operation: "update"
+  mysql.innodb_data_read:
+    standard_name: mysql.innodb.data.bytes.count
+    description: "The amount of data read since the server was started (in bytes). (counter)"
+    tags:
+      stat: "read"
+  mysql.innodb_data_written:
+    standard_name: mysql.innodb.data.bytes.count
+    description: "The amount of data written so far, in bytes. (counter)"
+    tags:
+      stat: "written"
+  mysql.innodb_os_log_written:
+    standard_name: mysql.innodb.redo_log.os_file.bytes.count
+    description: "The number of bytes written to the InnoDB redo log files. (counter)"
+  mysql.innodb_log_waits:
+    standard_name: mysql.innodb.redo_log_buffer.log_wait.count
+    description: "The number of times that the log buffer was too small and a wait was required for it to be flushed before continuing. (counter)"
+  mysql.innodb_data_fsyncs:
+    standard_name: mysql.innodb.redo_log.fsyncs.count
+    description: "The number of fsync() operations so far. The frequency of fsync() calls is influenced by the setting of the innodb_flush_method configuration option. (counter)"
+    tags:
+      stat: "innodb"
+  mysql.innodb_os_log_fsyncs:
+    standard_name: mysql.innodb.redo_log.fsyncs.count
+    description: "The number of fsync() writes done to the InnoDB redo log files. (counter)"
+    tags:
+      stat: "os_log"

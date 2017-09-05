@@ -96,13 +96,17 @@ mkdir -p %{buildroot}/%{py2_sitelib}/
 %{tcollectordir}/conf/grok_nginx.yml %config(noreplace)
 %{tcollectordir}/conf/grok_tomcat.yml %config(noreplace)
 %{tcollectordir}/conf/mysql.yml %config(noreplace)
+%{tcollectordir}/conf/grok_metrics.yml %config(noreplace)
+%{tcollectordir}/conf/memcached_metrics.yml %config(noreplace)
+%{tcollectordir}/conf/mysql_metrics.yml %config(noreplace)
+%{tcollectordir}/conf/node_metrics.yml %config(noreplace)
 %{tcollectordir}/conf/xcollector.yml %config(noreplace)
 %{tcollectordir}/xcollector.py
 %{tcollectordir}/collectors/0/dfstat.py
 %{tcollectordir}/collectors/0/ifstat.py
 %{tcollectordir}/collectors/0/iostat.py
 %{tcollectordir}/collectors/0/netstat.py
-%{tcollectordir}/collectors/0/procnettcp.py
+#%{tcollectordir}/collectors/0/procnettcp.py
 %{tcollectordir}/collectors/0/procstats.py
 #%{tcollectordir}/collectors/0/smart_stats.py
 %{tcollectordir}/collectors/0/mysql.py
@@ -147,6 +151,7 @@ if [ $1 -eq 0 ] ; then
     # Clean up collectors
     rm -f /etc/init.d/xcollector
     rm -rf %{tcollectordir}
+    rm -f /etc/xcollector
 fi
 
 %package collectors

@@ -1,6 +1,6 @@
 collector:
     name: xcollector
-    config_defaults:
+    config:
         verbose: False
         dryrun: False
         log_max_bytes: 67108864 # 64 * 1024 * 1024
