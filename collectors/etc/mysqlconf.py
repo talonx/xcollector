@@ -2,11 +2,17 @@
 
 from collectors.etc import yaml_conf
 
-MYSQL_CONFIG = yaml_conf.load_collector_configuration('mysql.yml')['collector']
+MYSQL_CONFIG = yaml_conf.load_collector_configuration('mysql.yml')['collector']['config']
+
+def get_db_hosts():
+    return MYSQL_CONFIG["remote_hosts"].keys()
+
+def get_db_connection_properties(host):
+    return (MYSQL_CONFIG["remote_hosts"][host]["connect_host"], MYSQL_CONFIG["remote_hosts"][host]["connect_port"],
+            MYSQL_CONFIG["remote_hosts"][host]["username"], MYSQL_CONFIG["remote_hosts"][host]["password"])
 
 
-def get_user_password(input_sock_file):
-    """Given the path of a socket file, returns a tuple (user, password)."""
-    for sock_file in MYSQL_CONFIG['sock_files']:
-        if sock_file['path'] == input_sock_file:
-            return (sock_file['username'], sock_file['password'])
+def get_db_custom_tags(host):
+    if "tags" not in MYSQL_CONFIG["remote_hosts"][host]:
+        return None
+    return MYSQL_CONFIG["remote_hosts"][host]["tags"]

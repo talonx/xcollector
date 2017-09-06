@@ -1,12 +1,54 @@
+# Configuration file for MySQL metrics collection
+# Please refer to the following examples based on your specific deployment scenario...
+# Please remember to enable root user access to the DB instance in question from the host where xcollector is running.
+#
+# Example 1: To enable metrics gathering for a dedicated mysql instance running on a host (either local or remote)
+#       my_hosted_mysql:
+#           connect_host: "<hostname/ip to connect to e.g. localhost / 192.168.1.123>"
+#           connect_port: <port to connect to e.g. 3306 (default mysql port)>
+#           username: "root"
+#           password: "<root password>"
+#
+# In this case a host tag is added to each metric of this MySQL instance which is same as the host on which the
+# collector is running.
+#
+# Example 2: To gather metrics from a remotely hosted cloud instance like Amazon AWS Aurora / RDS
+#       my_aws_aurora:
+#           connect_host: "<Aurora / RDS connection endpoint
+#                                     e.g.  mycluster.cluster-123456789012.us-east-1.rds.amazonaws.com>"
+#           connect_port: <port to connect to e.g. 3306 (default mysql port)>
+#           username: "root"
+#           password: "<root password>"
+#           tags:
+#               instance_id: "<instance ID of Aurora/RDS instance in question e.g. mycluster>"
+#               host: "__..skip_tag..__"
+#
+# In this case you might want to add a custom tag which helps you identify the specific instance while querying
+# for metrics later or while making dashboards with them. In this case, the instance ID of the monitored Aurora
+# instance. Please note that we are deliberately skipping the host tag (by setting it to a value of
+# "__..skip_tag..__" as it does not make sense to identify metrics specific to this instance with a hostname.
+#
+# Example 3: To configure metrics collection for GCP cloud SQL instance which is running a proxy on local host
+#            This configuration is much too similar to AWS Aurora except the fact that the collector needs to
+#            connect to proxy running on the localhost for fetching metrics which is not an ideal "host" tag value
+#            to identify metrics from this machine.
+#       my_gcp_cloudsql:
+#           connect_host: "<localhost as proxy is running on the same host as xcollector>"
+#           connect_port: <port to connect to e.g. 3306 (default mysql port)>
+#           username: "root"
+#           password: "<root password>"
+#           tags:
+#               host: "<global IP of the GCP instance being monitored e.g., 35.202.128.2>"
+#               instance_connection_name: "<a unique instance ID from the GCP console
+#                                                 e.g. central-equinox-178205:us-central1:grafana-mysql>"
+#
+
 collector:
     name: mysql
-    sock_files:
-        - path: "/tmp/mysql.sock"
-          username: "root"
-          password: ""
-        - path: "/var/lib/mysql/mysql.sock"
-          username: "root"
-          password: ""
-        - path: "/var/run/mysqld/mysqld.sock"
-          username: "root"
-          password: ""
+    config:
+        remote_hosts:
+            mysql:
+                connect_host: "localhost"
+                connect_port: 3306
+                username: "root"
+                password: ""
