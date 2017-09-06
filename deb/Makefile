@@ -52,11 +52,7 @@ deb:
 	cp $(VPATH)/collectors/etc/yaml_conf.py build/usr/local/xcollector/collectors/etc/
 	cp $(VPATH)/collectors/lib/__init__.py build/usr/local/xcollector/collectors/lib/
 	cp $(VPATH)/collectors/lib/utils.py build/usr/local/xcollector/collectors/lib/
-	cp $(VPATH)/conf/grok.yml build/usr/local/xcollector/conf/
-	cp $(VPATH)/conf/grok_nginx.yml build/usr/local/xcollector/conf/
-	cp $(VPATH)/conf/grok_tomcat.yml build/usr/local/xcollector/conf/
-	cp $(VPATH)/conf/mysql.yml build/usr/local/xcollector/conf/
-	cp $(VPATH)/conf/xcollector.yml build/usr/local/xcollector/conf/
+	cp $(VPATH)/conf/*.yml build/usr/local/xcollector/conf/
 	cp -r $(VPATH)/grok_exporter-0.2.1.linux-amd64/ build/usr/local/xcollector/
 	mv build/usr/local/xcollector/grok_exporter-0.2.1.linux-amd64/grok_exporter_deb build/usr/local/xcollector/grok_exporter-0.2.1.linux-amd64/grok_exporter
 	rm build/usr/local/xcollector/grok_exporter-0.2.1.linux-amd64/grok_exporter_rpm
