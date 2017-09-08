@@ -767,6 +767,10 @@ class SenderThread(threading.Thread):
               metric_tags = dict((k, v) for k, v in metric_tags.iteritems() if k in subset_metric_keys)
               LOG.error("Exceeding maximum permitted metric tags - removing %s for metric %s",
                         str(metric_tags_orig - set(metric_tags)), metric)
+            if "host" in metric_tags.keys() and metric_tags["host"] == "__..skip_tag..__":
+              metric_tags.pop("host")
+              if "host" in metric_entry["tags"]:
+                  metric_entry["tags"].pop("host",None)
             metric_entry["tags"].update(metric_tags)
             metrics.append(metric_entry)
 
@@ -935,7 +939,7 @@ def parse_cmdline(argv):
         options.backup_count = 1
     if not options.http_username or options.http_username == '' or options.http_username == 'PASTE_ACCESS_TOKEN_HERE':
         parser.error('access_token is not specified. Please add Apptuit issued access_token to '
-                     '/etc/xcollector/xcollector.yml.')
+                     '/etc/xcollector/xcollector.yml')
     return (options, args)
 
 

@@ -50,17 +50,7 @@ METRIC_MAPPING = yaml_conf.load_collector_configuration('mysql_metrics.yml')
 class DB(object):
   """Represents a MySQL server (as we can monitor more than 1 MySQL)."""
 
-  def __init__(self, sockfile, dbname, db, cursor, version):
-    """Constructor.
-
-    Args:
-      sockfile: Path to the socket file.
-      dbname: Name of the database for that socket file.
-      db: A MySQLdb connection opened to that socket file.
-      cursor: A cursor acquired from that connection.
-      version: What version is this MySQL running (from `SELECT VERSION()').
-    """
-    self.sockfile = sockfile
+  def __init__(self, db_config_host, db_custom_tags, dbname, db, cursor, version):
     self.dbname = dbname
     self.db = db
     self.cursor = cursor
@@ -76,8 +66,12 @@ class DB(object):
     except (ValueError, IndexError), e:
       self.major = self.medium = 0
 
+    self.remotehostconnect = True
+    self.db_config_host = db_config_host
+    self.db_custom_tags = db_custom_tags
+
   def __str__(self):
-    return "DB(%r, %r, version=%r)" % (self.sockfile, self.dbname,
+    return "DB(%r, %r, version=%r)" % (self.db_config_host, self.dbname,
                                        self.version)
 
   def __repr__(self):
@@ -116,12 +110,14 @@ class DB(object):
     self.cursor = self.db.cursor()
 
 
-def mysql_connect(sockfile):
+def mysql_connect(conn_props):
   """Connects to the MySQL server using the specified socket file."""
-  user, passwd = mysqlconf.get_user_password(sockfile)
-  return MySQLdb.connect(unix_socket=sockfile,
-                         connect_timeout=CONNECT_TIMEOUT,
-                         user=user, passwd=passwd)
+  return MySQLdb.connect(host=conn_props[0],
+                         port=conn_props[1],
+                         user=conn_props[2], passwd=conn_props[3])
+  # return MySQLdb.connect(unix_socket=sockfile,
+  #                        connect_timeout=CONNECT_TIMEOUT,
+  #                        user=user, passwd=passwd)
 
 
 def todict(db, row):
@@ -179,25 +175,25 @@ def find_databases(dbs=None):
     dbs: A map of dbname (string) to DB instances already monitored.
       This map will be modified in place if it's not None.
   """
-  sockfiles = find_sockfiles()
   if dbs is None:
     dbs = {}
-  for sockfile in sockfiles:
-    dbname = get_dbname(sockfile)
-    if dbname in dbs:
-      continue
-    if not dbname:
-      continue
+  for db_config_host in mysqlconf.get_db_hosts():
+    if db_config_host in dbs:
+        continue
+    conn_props = mysqlconf.get_db_connection_properties(db_config_host)
+    db_name = "default"
     try:
-      db = mysql_connect(sockfile)
+      db = mysql_connect(conn_props)
       cursor = db.cursor()
       cursor.execute("SELECT VERSION()")
     except (EnvironmentError, EOFError, RuntimeError, socket.error,
-            MySQLdb.MySQLError), e:
-      utils.err("Couldn't connect to %s: %s" % (sockfile, e))
+      MySQLdb.MySQLError), e:
+      utils.err("Couldn't connect to %s: %s" % (conn_props[2] + "@" + db_config_host + ":" + str(conn_props[1]), e))
       continue
     version = cursor.fetchone()[0]
-    dbs[dbname] = DB(sockfile, dbname, db, cursor, version)
+    dbs[db_config_host] = DB(db_config_host=db_config_host,
+                             db_custom_tags=mysqlconf.get_db_custom_tags(db_config_host),
+                             dbname=db_name, db=db, cursor=cursor, version=version)
   return dbs
 
 
@@ -216,7 +212,8 @@ def collectInnodbStatus(db):
   ts = now()
   def printmetric(metric, value, tags=""):
     print "mysql.%s %d %s schema=%s%s" % (metric, ts, value, db.dbname, tags)
-    metric_naming.print_if_apptuit_standard_metric("mysql." + metric, METRIC_MAPPING, ts, value, tags=None,
+    metric_naming.print_if_apptuit_standard_metric("mysql." + metric, METRIC_MAPPING, ts, value,
+                                                   tags=mysqlconf.get_db_custom_tags(db.db_config_host),
                                                    tags_str="schema=" + db.dbname + tags)
 
   innodb_status = db.query("SHOW ENGINE INNODB STATUS")[0][2]
@@ -302,7 +299,9 @@ def collect(db):
   ts = now()
   def printmetric(metric, value, tags=""):
     print "mysql.%s %d %s schema=%s%s" % (metric, ts, value, db.dbname, tags)
-    metric_naming.print_if_apptuit_standard_metric("mysql."+metric, METRIC_MAPPING, ts, value, tags=None, tags_str="schema=" + db.dbname + tags)
+    metric_naming.print_if_apptuit_standard_metric("mysql."+metric, METRIC_MAPPING, ts, value,
+                                                   tags=mysqlconf.get_db_custom_tags(db.db_config_host),
+                                                   tags_str="schema=" + db.dbname + tags)
 
   has_innodb = False
   if db.isShowGlobalStatusSafe():
@@ -369,8 +368,6 @@ def collect(db):
 
 def main(args):
   """Collects and dumps stats from a MySQL server."""
-  if not find_sockfiles():  # Nothing to monitor.
-    return 13               # Ask tcollector to not respawn us.
   if MySQLdb is None:
     utils.err("error: Python module `MySQLdb' is missing")
     return 1
