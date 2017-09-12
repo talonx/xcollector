@@ -65,14 +65,16 @@ def get_defaults():
         defaults['port'] = 443
     defaults['http'] = True
     defaults['http_api_path'] = "api/put"
-    defaults['tags'] = []
+    if 'tags' not in defaults:
+        defaults['tags'] = {}
     defaults['remove_inactive_collectors'] = False
     defaults['backup_count'] = defaults['log_backup_count']
     defaults["cdir"] = "/usr/local/xcollector/collectors"
     if 'ssl' not in defaults:
         defaults['ssl'] = True
     defaults['stdin'] = False
-    defaults['daemonize'] = True
+    if 'daemonize' not in defaults:
+        defaults['daemonize'] = True
     defaults['hosts'] = False
 
     return defaults
