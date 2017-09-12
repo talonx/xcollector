@@ -827,6 +827,20 @@ def setup_logging(logfile=DEFAULT_LOG, max_bytes=None, backup_count=None):
 def parse_cmdline(argv):
     """Parses the command-line."""
 
+    def tag_str_list_to_dict(list):
+        tag_dict = {}
+        for tag_str in list:
+            tag_value_split = tag_str.split("=")
+            if (len(tag_value_split) == 2):
+                tag_dict[tag_value_split[0].strip()] = tag_value_split[1].strip()
+        return tag_dict
+
+    def tag_dict_to_str_list(dict):
+        tag_list = []
+        for key, value in dict.iteritems():
+            tag_list.append(key.strip() + "=" + value.strip())
+        return tag_list
+
     try:
         from collectors.etc import config
         defaults = config.get_defaults()
@@ -873,7 +887,7 @@ def parse_cmdline(argv):
                         default=defaults['verbose'],
                         help=SUPPRESS_HELP) # 'Verbose mode (log debug messages).'
     parser.add_option('-t', '--tag', dest='tags', action='append',
-                      default=defaults['tags'], metavar='TAG',
+                      default=[], metavar='TAG',
                       help=SUPPRESS_HELP) # 'Tags to append to all timeseries we send, e.g.: -t TAG=VALUE -t TAG2=VALUE'
     parser.add_option('-P', '--pidfile', dest='pidfile',
                       default=defaults['pidfile'],
@@ -927,6 +941,10 @@ def parse_cmdline(argv):
     parser.add_option('--ssl', dest='ssl', action='store_true', default=defaults['ssl'],
                       help=SUPPRESS_HELP) # 'Enable SSL - used in conjunction with http'
     (options, args) = parser.parse_args(args=argv[1:])
+    cmdline_dict = tag_str_list_to_dict(options.tags)
+    for key, value in defaults['tags'].iteritems():
+        cmdline_dict[key] = value
+    options.tags = tag_dict_to_str_list(cmdline_dict)
     if options.dedupinterval < 0:
         parser.error('--dedup-interval must be at least 0 seconds')
     if options.evictinterval <= options.dedupinterval:
