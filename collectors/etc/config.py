@@ -74,7 +74,7 @@ def get_defaults():
         defaults['ssl'] = True
     defaults['stdin'] = False
     if 'daemonize' not in defaults:
-        defaults['daemonize'] = True
+        defaults['daemonize'] = False
     defaults['hosts'] = False
 
     return defaults
