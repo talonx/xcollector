@@ -42,18 +42,14 @@ mkdir -p %{buildroot}/etc/init.d/
 %{__install} -m 0755 -D %{rootdir}/rpm/initd.sh %{buildroot}/etc/init.d/xcollector
 
 # Install Base files
-mkdir -p %{buildroot}%{tcollectordir}/bbm/lib/
 mkdir -p %{buildroot}%{tcollectordir}/conf/
 mkdir -p %{buildroot}%{tcollectordir}/collectors/lib/
-mkdir -p %{buildroot}%{tcollectordir}/collectors/lib/bbm/
 mkdir -p %{buildroot}%{tcollectordir}/collectors/etc/
 mkdir -p %{buildroot}%{grokexpdir}/patterns/
-#%{__install} -m 0755 -D %{rootdir}/bbm/lib/* %{buildroot}%{tcollectordir}/bbm/lib/
 %{__install} -m 0755 -D %{grokexprootdir}/grok_exporter_rpm %{buildroot}%{grokexpdir}/grok_exporter
 %{__install} -m 0755 -D %{grokexprootdir}/patterns/* %{buildroot}%{grokexpdir}/patterns/
 %{__install} -m 0755 -D %{rootdir}/conf/* %{buildroot}%{tcollectordir}/conf/
 %{__install} -m 0755 -D %{srccollectors}/__init__.py %{buildroot}%{tcollectordir}/collectors/
-%{__install} -m 0755 -D %{srccollectors}/lib/bbm/* %{buildroot}%{tcollectordir}/collectors/lib/bbm/
 %{__install} -m 0755 -D %{srccollectors}/lib/*py* %{buildroot}%{tcollectordir}/collectors/lib/
 %{__install} -m 0755 -D %{srccollectors}/etc/* %{buildroot}%{tcollectordir}/collectors/etc/
 %{__install} -m 0755 -D %{rootdir}/tcollector.py %{buildroot}%{tcollectordir}/xcollector.py
