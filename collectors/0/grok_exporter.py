@@ -52,11 +52,11 @@ def launch_grokker(exporter_dir, config):
         for metric in metrics:
             metric_name = metric['name']
             if metric['type'] in ('histogram', 'summary'):
-                pattern = re.compile('^(%s)([^\}]*[\}]*)(\s+\d*\.*\d+)' % (metric_name + '_count'))
+                pattern = re.compile('^(%s)([^\}]*[\}]*)(\s+[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)' % (metric_name + '_count'))
                 patterns.append(pattern)
-                pattern = re.compile('^(%s)([^\}]*[\}]*)(\s+\d*\.*\d+)' % (metric_name + '_sum'))
+                pattern = re.compile('^(%s)([^\}]*[\}]*)(\s+[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)' % (metric_name + '_sum'))
                 patterns.append(pattern)
-            pattern = re.compile('^(%s)([^\}]*[\}]*)(\s+\d*\.*\d+)' % metric_name)
+            pattern = re.compile('^(%s)([^\}]*[\}]*)(\s+[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)' % metric_name)
             patterns.append(pattern)
         host = ycfg['server']['host']
         port = ycfg['server']['port']
