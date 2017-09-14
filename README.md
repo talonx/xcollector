@@ -11,5 +11,8 @@ It is a fork of [tcollector](https://github.com/OpenTSDB/tcollector) with suppor
 ### Downloads
 Download the latest release from the [releases page](https://github.com/ApptuitAI/xcollector/releases).
 
+### Installation
+Installation instructions are available on the [Installation](https://github.com/ApptuitAI/xcollector/wiki/Installation) Wiki 
+
 ### Development
 The master branch is [apptuit-master](https://github.com/ApptuitAI/xcollector/tree/apptuit-master).
