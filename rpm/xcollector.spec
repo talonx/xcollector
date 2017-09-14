@@ -53,6 +53,7 @@ mkdir -p %{buildroot}%{grokexpdir}/patterns/
 %{__install} -m 0755 -D %{srccollectors}/lib/*py* %{buildroot}%{tcollectordir}/collectors/lib/
 %{__install} -m 0755 -D %{srccollectors}/etc/* %{buildroot}%{tcollectordir}/collectors/etc/
 %{__install} -m 0755 -D %{rootdir}/tcollector.py %{buildroot}%{tcollectordir}/xcollector.py
+%{__install} -m 0755 -D %{rootdir}/grok_scraper.py %{buildroot}%{tcollectordir}/grok_scraper.py
 
 # Install Collectors
 %{__install} -m 0755 -D %{srccollectors}/0/* %{buildroot}%{collectorsdir}/0/
@@ -81,7 +82,7 @@ mkdir -p %{buildroot}/%{py2_sitelib}/
 #%{tcollectordir}/collectors/etc/flume_conf.py
 #%{tcollectordir}/collectors/etc/g1gc_conf.py
 #%{tcollectordir}/collectors/etc/graphite_bridge_conf.py
-%{tcollectordir}/collectors/etc/grok_exporter_conf.py
+%{tcollectordir}/collectors/etc/grok_scraper_conf.py
 #%{tcollectordir}/collectors/etc/jolokia_conf.py
 %{tcollectordir}/collectors/etc/mysqlconf.py
 %{tcollectordir}/collectors/etc/metric_naming.py
@@ -98,6 +99,7 @@ mkdir -p %{buildroot}/%{py2_sitelib}/
 %{tcollectordir}/conf/node_metrics.yml %config(noreplace)
 %{tcollectordir}/conf/xcollector.yml %config(noreplace)
 %{tcollectordir}/xcollector.py
+%{tcollectordir}/grok_scraper.py
 %{tcollectordir}/collectors/0/dfstat.py
 %{tcollectordir}/collectors/0/ifstat.py
 %{tcollectordir}/collectors/0/iostat.py
@@ -107,7 +109,6 @@ mkdir -p %{buildroot}/%{py2_sitelib}/
 #%{tcollectordir}/collectors/0/smart_stats.py
 %{tcollectordir}/collectors/0/mysql.py
 %{tcollectordir}/collectors/0/memcache.py
-%{tcollectordir}/collectors/0/grok_exporter.py
 %{grokexpdir}/grok_exporter
 %{grokexpdir}/patterns/aws
 %{grokexpdir}/patterns/bacula
@@ -123,18 +124,24 @@ mkdir -p %{buildroot}/%{py2_sitelib}/
 %{grokexpdir}/patterns/mcollective-patterns
 %{grokexpdir}/patterns/mongodb
 %{grokexpdir}/patterns/nagios
-%{grokexpdir}/patterns/nginx-access-log
 %{grokexpdir}/patterns/postgresql
 %{grokexpdir}/patterns/rails
 %{grokexpdir}/patterns/redis
 %{grokexpdir}/patterns/ruby
-%{grokexpdir}/patterns/tomcat-access-log
 
 %post
 chkconfig --add xcollector
 if [ ! -L "/etc/xcollector" ]
 then
   ln -s %{tcollectordir}/conf /etc/xcollector
+  ln -s %{tcollectordir}/grok_scraper.py %{tcollectordir}/collectors/0/nginx.py
+  ln -s %{tcollectordir}/grok_scraper.py %{tcollectordir}/collectors/0/tomcat.py
+fi
+
+%preun
+if [ "$1" = "0" ]; then
+    # stop service before starting the uninstall
+    service xcollector stop
 fi
 
 %postun
@@ -148,74 +155,4 @@ if [ $1 -eq 0 ] ; then
     rm -f /etc/init.d/xcollector
     rm -rf %{tcollectordir}
     rm -f /etc/xcollector
-fi
-
-%package collectors
-Summary: The linux OpenTSDB collectors
-Group: System/Monitoring
-Requires: tcollector >= 1.2.1
-%description collectors
-
-
-%files collectors
-%{tcollectordir}/collectors/0/dfstat.py
-%{tcollectordir}/collectors/0/ifstat.py
-%{tcollectordir}/collectors/0/iostat.py
-%{tcollectordir}/collectors/0/netstat.py
-%{tcollectordir}/collectors/0/procnettcp.py
-%{tcollectordir}/collectors/0/procstats.py
-%{tcollectordir}/collectors/0/smart_stats.py
-
-%postun collectors
-# $1 --> if 0, then it is a deinstall
-# $1 --> if 1, then it is an upgrade
-if [ $1 -eq 0 ] ; then
-    # This is a removal, not an upgrade
-    #  $1 versions will remain after this uninstall
-
-    # Clean up collectors
-    rm -f %{tcollectordir}/collectors/0/dfstat.py
-    rm -f %{tcollectordir}/collectors/0/ifstat.py
-    rm -f %{tcollectordir}/collectors/0/iostat.py
-    rm -f %{tcollectordir}/collectors/0/netstat.py
-    rm -f %{tcollectordir}/collectors/0/procnettcp.py
-    rm -f %{tcollectordir}/collectors/0/procstats.py
-    rm -f %{tcollectordir}/collectors/0/smart_stats.py
-fi
-
-%package eos
-Summary: Linux Collectors and Arista EOS Collectors
-Group: System/Monitoring
-Requires: tcollector
-Requires: EosSdk >= 1.5.1
-Obsoletes: tcollectorAgent <= 1.0.2
-
-%description eos
-The tcollector-eos subpackage provides files that leverage the EOSSDK to
-gather statistics from EOS.  It should be used in conjunction with
-the tcollector package and optionally the tcollector-collectors subpackage. If
-you run make swix, all three packages will be included.
-
-%files eos
-%attr(755, -, -) /usr/bin/tcollector
-%{tcollectordir}/collectors/0/agentcpu.sh
-%{tcollectordir}/collectors/0/agentmem.sh
-%{tcollectordir}/collectors/0/eos.py
-%{py2_sitelib}/tcollector_agent.py
-
-
-%postun eos
-# $1 --> if 0, then it is a deinstall
-# $1 --> if 1, then it is an upgrade
-if [ $1 -eq 0 ] ; then
-    # This is a removal, not an upgrade
-    #  $1 versions will remain after this uninstall
-
-    # Clean up eos
-    rm -f /usr/bin/tcollector
-    rm -f %{tcollectordir}/collectors/0/agentcpu.sh
-    rm -f %{tcollectordir}/collectors/0/agentmem.sh
-    rm -f %{tcollectordir}/collectors/0/eos.py
-    rm -f %{py2_sitelib}/tcollector_agent.py*
-
 fi

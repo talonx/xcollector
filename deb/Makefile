@@ -2,7 +2,7 @@
 # Copyright (C) 2017  AgilX Inc.
 #
 
-PACKAGE_VERSION := 0.6
+PACKAGE_VERSION := 0.6.5
 PACKAGE_REVISION := 1
 
 # Various commands we need.
@@ -35,7 +35,6 @@ deb:
 	cp -r DEBIAN/* build/DEBIAN/
 	cp -r etc/ build/
 	cp $(VPATH)/collectors/0/dfstat.py build/usr/local/xcollector/collectors/0/
-	cp $(VPATH)/collectors/0/grok_exporter.py build/usr/local/xcollector/collectors/0/
 	cp $(VPATH)/collectors/0/ifstat.py build/usr/local/xcollector/collectors/0/
 	cp $(VPATH)/collectors/0/iostat.py build/usr/local/xcollector/collectors/0/
 	cp $(VPATH)/collectors/0/memcache.py build/usr/local/xcollector/collectors/0/
@@ -46,7 +45,7 @@ deb:
 	cp $(VPATH)/collectors/__init__.py build/usr/local/xcollector/collectors/
 	cp $(VPATH)/collectors/etc/__init__.py build/usr/local/xcollector/collectors/etc/
 	cp $(VPATH)/collectors/etc/config.py build/usr/local/xcollector/collectors/etc/
-	cp $(VPATH)/collectors/etc/grok_exporter_conf.py build/usr/local/xcollector/collectors/etc/
+	cp $(VPATH)/collectors/etc/grok_scraper_conf.py build/usr/local/xcollector/collectors/etc/
 	cp $(VPATH)/collectors/etc/metric_naming.py build/usr/local/xcollector/collectors/etc/
 	cp $(VPATH)/collectors/etc/mysqlconf.py build/usr/local/xcollector/collectors/etc/
 	cp $(VPATH)/collectors/etc/yaml_conf.py build/usr/local/xcollector/collectors/etc/
@@ -57,6 +56,7 @@ deb:
 	mv build/usr/local/xcollector/grok_exporter-0.2.1.linux-amd64/grok_exporter_deb build/usr/local/xcollector/grok_exporter-0.2.1.linux-amd64/grok_exporter
 	rm build/usr/local/xcollector/grok_exporter-0.2.1.linux-amd64/grok_exporter_rpm
 	cp $(VPATH)/tcollector.py build/usr/local/xcollector/xcollector.py
+	cp $(VPATH)/grok_scraper.py build/usr/local/xcollector/grok_scraper.py
 	set -e; { \
 	  sed \
             -e 's/@PACKAGE_VERSION@/$(PACKAGE_VERSION)/' \

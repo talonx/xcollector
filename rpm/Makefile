@@ -13,17 +13,11 @@
 
 # This Makefile is a complete train wreck.  I'm sorry.  --tsuna
 
-PACKAGE_VERSION := 0.6
+PACKAGE_VERSION := 0.6.5
 RPM_REVISION := 1
-# Where do we install our files.
-tcollectordir := /usr/local/xcollector
 
-# Various commands we need.
-MKDIR_P := mkdir -p
-CP_P := cp -p
 # In some environment this command can be called `gsha1sum' or `digest'.
 SHA1SUM := sha1sum
-ZIP := zip -9
 PYTHON_VERSION := 2.6
 PYTHON := python$(PYTHON_VERSION)
 
@@ -39,28 +33,8 @@ git_fullsha1 := \
 RPM_TARGET := x86_64
 BASENAME := xcollector-$(PACKAGE_VERSION)-$(RPM_REVISION)
 RPM := $(BASENAME).$(RPM_TARGET).rpm
-SRPM := $(BASENAME).src.rpm
-COLLECTORSRPM := xcollector-collectors-$(PACKAGE_VERSION)-$(RPM_REVISION).$(RPM_TARGET).rpm
-EOSRPM := xcollector-eos-$(PACKAGE_VERSION)-$(RPM_REVISION).$(RPM_TARGET).rpm
-SWIX := $(BASENAME).swix
 
-all: rpm swix
-
-$(SWIX): manifest.txt $(EOSRPM) $(RPM) $(COLLECTORSRPM)
-	$(ZIP) $@ $^
-
-swix: $(SWIX)
-
-manifest.txt: Makefile
-	set -e; { \
-          echo 'format: 1'; \
-          echo 'primaryRpm: $(EOSRPM)'; \
-	  for rpm in $(EOSRPM) $(RPM) $(COLLECTORSRPM); do \
-            echo -n "$$rpm-sha1: "; \
-            set `$(SHA1SUM) "$$rpm"`; \
-            echo $$1; \
-          done; \
-        } >$@
+all: distclean rpm
 
 rpm:
 	set -e; { \
@@ -75,18 +49,16 @@ rpm:
         } >xcollector-t.spec
 	rpmbuild --define "_topdir %(pwd)/" \
           --define "_sourcedir %(pwd)/dist/" \
-          --define "_rpmdir %(pwd)" \
+          --define "_rpmdir %(pwd)/dist/" \
           --define "_srcrpmdir %{_topdir}" \
-          -ba xcollector-t.spec
-	if test -f $(RPM_TARGET)/$(RPM); then mv $(RPM_TARGET)/$(RPM) .; else mv xcollector.$(RPM_TARGET).rpm $(RPM); fi
-	if test -f $(RPM_TARGET)/$(COLLECTORSRPM); then mv $(RPM_TARGET)/$(COLLECTORSRPM) .; else mv xcollector-collectors.$(RPM_TARGET).rpm $(COLLECTORSRPM); fi
-	if test -f $(RPM_TARGET)/$(EOSRPM); then mv $(RPM_TARGET)/$(EOSRPM) .; else mv xcollector-eos.$(RPM_TARGET).rpm $(EOSRPM); fi
+          -bb xcollector-t.spec
+	if test -f $(RPM_TARGET)/$(RPM); then mv $(RPM_TARGET)/$(RPM) ./dist/; else mv xcollector.$(RPM_TARGET).rpm $(RPM); fi
 
 clean:
-	rm -rf xcollector-t.spec manifest.txt bld dist tmp $(RPM_TARGET)
+	rm -rf xcollector-t.spec bld dist tmp $(RPM_TARGET)
 
 distclean: clean
-	rm -f $(SWIX) $(RPM) $(SRPM) $(COLLECTORSRPM) $(EOSRPM)
+	rm -f $(RPM)
 
-.PHONY: all rpm clean distclean swix
+.PHONY: all rpm clean distclean
 .SUFFIXES: .spec .rpm

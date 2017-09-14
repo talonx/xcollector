@@ -11,7 +11,7 @@ import traceback
 
 from StringIO import StringIO
 
-from collectors.etc import grok_exporter_conf
+from collectors.etc import grok_scraper_conf
 from collectors.etc import metric_naming
 from collectors.etc import yaml_conf
 
@@ -28,13 +28,16 @@ class Proc():
         self.alive = True
 
 
-def launch_grokker(exporter_dir, config):
+def launch_grokker(exporter_dir, config, generate_debug_log):
     try:
+        debug_log_fd = open(os.devnull, 'w')
+        if generate_debug_log:
+            debug_log_fd = None
         # No need to set the setsid or do pgkill here since we know grokker does not launch any subprocesses
         proc = subprocess.Popen([exporter_dir + '/grok_exporter', '-config',
                                  config],
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE,
+                                stdout=debug_log_fd,
+                                stderr=debug_log_fd,
                                 close_fds=True,
                                 cwd=exporter_dir)
         processes.append(Proc(proc))
@@ -93,10 +96,13 @@ def start_poller():
 
 def main():
     signal.signal(signal.SIGTERM, die)
-    exporter_dir = grok_exporter_conf.get_grok_exporter_dir()
-    config_files = grok_exporter_conf.get_config_files()
-    for config_file in config_files:
-        launch_grokker(exporter_dir, config_file)
+    exporter_dir = grok_scraper_conf.get_grok_exporter_dir()
+    scraper_dir = grok_scraper_conf.get_grok_scraper_config_dir()
+    current_grok_scraper = os.path.basename(__file__)
+    current_grok_scraper = current_grok_scraper[0:current_grok_scraper.index('.')]
+    config_file_name = "grok_" + current_grok_scraper + ".yml"
+    config_file_path = os.path.join(scraper_dir, config_file_name)
+    launch_grokker(exporter_dir, config_file_path, grok_scraper_conf.get_grok_exporter_debug())
     start_poller()
 
 
@@ -117,10 +123,11 @@ def kill_children(signum):
 
 def fetch_metrics():
     def format_metric_value(value):
-        if float(value).is_integer():
-            return int(value)
+        float_value = float(value)
+        if float_value.is_integer():
+            return int(float_value)
         else:
-            return "{0:.3f}".format(float(value))
+            return "{0:.3f}".format(float_value)
 
     def print_metric(metric_name, timestamp, value, tags):
         print("%s %s %s %s" % (metric_name, timestamp, format_metric_value(value), tags))
@@ -144,12 +151,12 @@ def fetch_metrics():
                             continue
                         tags = ' '.join(g[1].replace('"', '').strip('{}').split(','))
                         if '::_' in g[0]:
-                            extratags = g[0].split('::_');
+                            extratags = g[0].split('::_')
                             global finalmetricname
                             finalmetricname = extratags[0]
                             for i, extratag in enumerate(extratags):
                                 if i == 0:
-                                    continue;
+                                    continue
                                 elif extratag.startswith('_'):
                                     finalmetricname += extratag
                                 else:

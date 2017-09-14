@@ -111,13 +111,10 @@ class DB(object):
 
 
 def mysql_connect(conn_props):
-  """Connects to the MySQL server using the specified socket file."""
+  """Connects to the MySQL server using the specified connection properties."""
   return MySQLdb.connect(host=conn_props[0],
                          port=conn_props[1],
                          user=conn_props[2], passwd=conn_props[3])
-  # return MySQLdb.connect(unix_socket=sockfile,
-  #                        connect_timeout=CONNECT_TIMEOUT,
-  #                        user=user, passwd=passwd)
 
 
 def todict(db, row):
@@ -167,6 +164,8 @@ def find_sockfiles():
     paths.append(sockfile)
   return paths
 
+def die():
+  exit(13)
 
 def find_databases(dbs=None):
   """Returns a map of dbname (string) to DB instances to monitor.
@@ -186,14 +185,21 @@ def find_databases(dbs=None):
       db = mysql_connect(conn_props)
       cursor = db.cursor()
       cursor.execute("SELECT VERSION()")
+      connected = True
     except (EnvironmentError, EOFError, RuntimeError, socket.error,
       MySQLdb.MySQLError), e:
       utils.err("Couldn't connect to %s: %s" % (conn_props[2] + "@" + db_config_host + ":" + str(conn_props[1]), e))
       continue
-    version = cursor.fetchone()[0]
-    dbs[db_config_host] = DB(db_config_host=db_config_host,
-                             db_custom_tags=mysqlconf.get_db_custom_tags(db_config_host),
-                             dbname=db_name, db=db, cursor=cursor, version=version)
+
+    if connected:
+       version = cursor.fetchone()[0]
+       dbs[db_config_host] = DB(db_config_host=db_config_host,
+                                db_custom_tags=mysqlconf.get_db_custom_tags(db_config_host),
+                                dbname=db_name, db=db, cursor=cursor, version=version)
+
+  if not dbs:
+    die()
+
   return dbs
 
 
