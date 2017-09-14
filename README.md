@@ -1,6 +1,5 @@
-xcollector is a framework to collect data points and store them in [apptuit.ai](https://apptuit.ai).
-
-It allows you to write simple collectors that it'll run and monitor. 
+# XCollector
+XCollector is a pluggable data collection framework for reporting metrics to  [apptuit.ai](https://apptuit.ai). It comes with built-in collectors for collecting server metrics. It provides a very simple framework to easily add support for collecting metrics from other services and APIs.
 
 It is a fork of [tcollector](https://github.com/OpenTSDB/tcollector) with support for:
 * Storing data in Apptuit
