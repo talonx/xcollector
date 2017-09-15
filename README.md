@@ -16,3 +16,10 @@ Installation instructions are available on the [Installation](https://github.com
 
 ### Development
 The master branch is [apptuit-master](https://github.com/ApptuitAI/xcollector/tree/apptuit-master).
+
+### Attributions
+xcollector includes...
+
+ * [tcollector](https://github.com/OpenTSDB/tcollector)
+ * [python-ssllabs](https://github.com/takeshixx/python-ssllabs)
+ * [Grok Exporter](https://github.com/fstab/grok_exporter)

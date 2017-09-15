@@ -1,4 +1,0 @@
-COMMONTOMCATLOG %{IPORHOST:clientip} %{HTTPDUSER:ident} %{USER:auth} \[%{HTTPDATE:timestamp}\] "(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})" %{NUMBER:response} (?:%{NUMBER:bytes}|-)
-COMBINEDTOMCATLOG %{COMMONTOMCATLOG} %{QS:referrer} %{QS:agent}
-APPTUITTOMCATLOG %{COMBINEDTOMCATLOG} %{NUMBER:reqtime}
-
