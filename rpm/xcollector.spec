@@ -89,15 +89,15 @@ mkdir -p %{buildroot}/%{py2_sitelib}/
 #%{tcollectordir}/collectors/etc/postgresqlconf.py
 #%{tcollectordir}/collectors/etc/udp_bridge_conf.py
 #%{tcollectordir}/collectors/etc/zabbix_bridge_conf.py
-%{tcollectordir}/conf/grok.yml %config(noreplace)
-%{tcollectordir}/conf/grok_nginx.yml %config(noreplace)
-%{tcollectordir}/conf/grok_tomcat.yml %config(noreplace)
-%{tcollectordir}/conf/mysql.yml %config(noreplace)
-%{tcollectordir}/conf/grok_metrics.yml %config(noreplace)
-%{tcollectordir}/conf/memcached_metrics.yml %config(noreplace)
-%{tcollectordir}/conf/mysql_metrics.yml %config(noreplace)
-%{tcollectordir}/conf/node_metrics.yml %config(noreplace)
-%{tcollectordir}/conf/xcollector.yml %config(noreplace)
+%{tcollectordir}/conf/grok.yml %config
+%{tcollectordir}/conf/grok_nginx.yml %config
+%{tcollectordir}/conf/grok_tomcat.yml %config
+%{tcollectordir}/conf/mysql.yml %config
+%{tcollectordir}/conf/grok_metrics.yml %config
+%{tcollectordir}/conf/memcached_metrics.yml %config
+%{tcollectordir}/conf/mysql_metrics.yml %config
+%{tcollectordir}/conf/node_metrics.yml %config
+%{tcollectordir}/conf/xcollector.yml %config
 %{tcollectordir}/xcollector.py
 %{tcollectordir}/grok_scraper.py
 %{tcollectordir}/collectors/0/dfstat.py
@@ -129,12 +129,24 @@ mkdir -p %{buildroot}/%{py2_sitelib}/
 %{grokexpdir}/patterns/redis
 %{grokexpdir}/patterns/ruby
 
+%pre
+if [ "$1" = "2" ]; then
+    # stop previous version of xcollector service before starting upgrade
+    service xcollector stop
+fi
+
 %post
 chkconfig --add xcollector
 if [ ! -L "/etc/xcollector" ]
 then
   ln -s %{tcollectordir}/conf /etc/xcollector
+fi
+if [ ! -L "%{tcollectordir}/collectors/0/nginx.py" ]
+then
   ln -s %{tcollectordir}/grok_scraper.py %{tcollectordir}/collectors/0/nginx.py
+fi
+if [ ! -L "%{tcollectordir}/collectors/0/tomcat.py" ]
+then
   ln -s %{tcollectordir}/grok_scraper.py %{tcollectordir}/collectors/0/tomcat.py
 fi
 
@@ -153,6 +165,5 @@ if [ $1 -eq 0 ] ; then
 
     # Clean up collectors
     rm -f /etc/init.d/xcollector
-    rm -rf %{tcollectordir}
     rm -f /etc/xcollector
 fi
