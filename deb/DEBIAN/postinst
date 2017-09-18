@@ -6,6 +6,16 @@ then
   ln -s /usr/local/xcollector/conf /etc/xcollector
 fi
 
+if [ ! -L "/usr/local/xcollector/collectors/0/nginx.py" ]
+then
+  ln -s /usr/local/xcollector/grok_scraper.py /usr/local/xcollector/collectors/0/nginx.py
+fi
+
+if [ ! -L "/usr/local/xcollector/collectors/0/tomcat.py" ]
+then
+  ln -s /usr/local/xcollector/grok_scraper.py /usr/local/xcollector/collectors/0/tomcat.py
+fi
+
 case "$1" in
   configure)
 	XCOLLECTOR_USER="xcollector"
