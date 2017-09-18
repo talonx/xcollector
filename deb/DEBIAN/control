@@ -2,7 +2,7 @@ Package: xcollector
 Version: @PACKAGE_VERSION@-@PACKAGE_REVISION@
 License: LGPLv3+
 Architecture: amd64
-Maintainer: <info@apptuit.ai>
+Maintainer: <hello@apptuit.ai>
 Installed-Size: 7068
 Depends: python, python-dev, python-mysqldb, python-yaml, python-requests
 Provides: xcollector
