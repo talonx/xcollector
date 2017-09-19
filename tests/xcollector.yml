@@ -1,0 +1,9 @@
+collector:
+    name: xcollector
+    config:
+        verbose: True
+        dryrun: False
+        log_max_bytes: 67108864 # 64 * 1024 * 1024
+        access_token: newa
+        log_backup_count: 10
+        logfile: "/var/log/xcollector/xcollector.log"
