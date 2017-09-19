@@ -162,6 +162,8 @@ if ! [ $(id $XCOLLECTOR_USER) ]; then
   -g $XCOLLECTOR_GROUP --shell /sbin/nologin $XCOLLECTOR_USER
 fi
 
+chown -R $XCOLLECTOR_USER.$XCOLLECTOR_GROUP /usr/local/xcollector
+
 %preun
 if [ "$1" = "0" ]; then
     # stop service before starting the uninstall

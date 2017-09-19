@@ -29,6 +29,8 @@ case "$1" in
 		"$XCOLLECTOR_USER"
 	fi
 
+  chown -R $XCOLLECTOR_USER.$XCOLLECTOR_GROUP /usr/local/xcollector
+
   touch /usr/share/xcollector.log
 	chown $XCOLLECTOR_USER:$XCOLLECTOR_GROUP /usr/share/xcollector.log
   ;;
