@@ -150,6 +150,18 @@ then
   ln -s %{tcollectordir}/grok_scraper.py %{tcollectordir}/collectors/0/tomcat.py
 fi
 
+XCOLLECTOR_USER="xcollector"
+XCOLLECTOR_GROUP="xcollector"
+
+if ! [ $(getent group $XCOLLECTOR_GROUP) ]; then
+  groupadd --system $XCOLLECTOR_GROUP
+fi
+
+if ! [ $(id $XCOLLECTOR_USER) ]; then
+  useradd --system --home-dir /usr/local/xcollector --no-create-home \
+  -g $XCOLLECTOR_GROUP --shell /sbin/nologin $XCOLLECTOR_USER
+fi
+
 %preun
 if [ "$1" = "0" ]; then
     # stop service before starting the uninstall
