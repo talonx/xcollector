@@ -7,7 +7,7 @@ python:
   - "2.7"
 install:
   - pip install pylint ordereddict
-  - yum install -y vagrant
+  - apt-get install -y vagrant
 script:
   - ./pylint-runner.py -s
   - ./tests.py
