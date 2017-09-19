@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import logging
 import os
 import re
 import requests
@@ -21,6 +22,9 @@ urls_vs_patterns = {}
 
 METRIC_MAPPING = yaml_conf.load_collector_configuration('grok_metrics.yml')
 
+logging.basicConfig(stream=sys.stderr)
+LOG = logging.getLogger('grok_scraper')
+LOG.setLevel(logging.INFO)
 
 class Proc():
     def __init__(self, proc):
@@ -93,6 +97,22 @@ def start_poller():
         time.sleep(COLLECTION_INTERVAL_SECONDS)
         fetch_metrics()
 
+def check_log_accessibility(config_file_path):
+    with open(config_file_path, 'r') as stream:
+        yconfig = None
+        try:
+            yconfig = yaml.load(stream)
+        except yaml.YAMLError as exc:
+            LOG.error("Error parsing grokker config: {0}".format(exc))
+            die()
+        if 'input' not in yconfig or 'path' not in yconfig['input']:
+            LOG.error("Improper grokker config as argument")
+            die()
+        input_path = yconfig['input']['path']
+        if not os.access(input_path, os.R_OK):
+            LOG.error("The file " + input_path + " does not exist or xcollector does not have read permissions to it")
+            die()
+    return
 
 def main():
     signal.signal(signal.SIGTERM, die)
@@ -102,6 +122,7 @@ def main():
     current_grok_scraper = current_grok_scraper[0:current_grok_scraper.index('.')]
     config_file_name = "grok_" + current_grok_scraper + ".yml"
     config_file_path = os.path.join(scraper_dir, config_file_name)
+    check_log_accessibility(config_file_path)
     launch_grokker(exporter_dir, config_file_path, grok_scraper_conf.get_grok_exporter_debug())
     start_poller()
 

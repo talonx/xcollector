@@ -16,6 +16,16 @@ then
   ln -s /usr/local/xcollector/grok_scraper.py /usr/local/xcollector/collectors/0/tomcat.py
 fi
 
+if [ ! -d "/var/run/xcollector" ]
+then
+  mkdir -p "/var/run/xcollector"
+fi
+
+if [ ! -d "/var/log/xcollector" ]
+then
+  mkdir -p "/var/log/xcollector"
+fi
+
 case "$1" in
   configure)
 	XCOLLECTOR_USER="xcollector"
@@ -30,9 +40,8 @@ case "$1" in
 	fi
 
   chown -R $XCOLLECTOR_USER.$XCOLLECTOR_GROUP /usr/local/xcollector
-
-  touch /usr/share/xcollector.log
-	chown $XCOLLECTOR_USER:$XCOLLECTOR_GROUP /usr/share/xcollector.log
+  chown -R $XCOLLECTOR_USER.$XCOLLECTOR_GROUP /var/run/xcollector
+  chown -R $XCOLLECTOR_USER.$XCOLLECTOR_GROUP /var/log/xcollector
   ;;
 esac
 
