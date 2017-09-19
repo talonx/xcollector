@@ -149,6 +149,30 @@ if [ ! -L "%{tcollectordir}/collectors/0/tomcat.py" ]
 then
   ln -s %{tcollectordir}/grok_scraper.py %{tcollectordir}/collectors/0/tomcat.py
 fi
+if [ ! -d "/var/run/xcollector" ]
+then
+  mkdir -p "/var/run/xcollector"
+fi
+if [ ! -d "/var/log/xcollector" ]
+then
+  mkdir -p "/var/log/xcollector"
+fi
+
+XCOLLECTOR_USER="xcollector"
+XCOLLECTOR_GROUP="xcollector"
+
+if ! [ $(getent group $XCOLLECTOR_GROUP) ]; then
+  groupadd --system $XCOLLECTOR_GROUP
+fi
+
+if ! [ $(id $XCOLLECTOR_USER) ]; then
+  useradd --system --home-dir /usr/local/xcollector --no-create-home \
+  -g $XCOLLECTOR_GROUP --shell /sbin/nologin $XCOLLECTOR_USER
+fi
+
+chown -R $XCOLLECTOR_USER.$XCOLLECTOR_GROUP /usr/local/xcollector
+chown -R $XCOLLECTOR_USER.$XCOLLECTOR_GROUP /var/run/xcollector
+chown -R $XCOLLECTOR_USER.$XCOLLECTOR_GROUP /var/log/xcollector
 
 %preun
 if [ "$1" = "0" ]; then
@@ -166,4 +190,6 @@ if [ $1 -eq 0 ] ; then
     # Clean up collectors
     rm -f /etc/init.d/xcollector
     rm -f /etc/xcollector
+
+    userdel xcollector
 fi

@@ -6,7 +6,7 @@ collector:
         log_max_bytes: 67108864 # 64 * 1024 * 1024
         access_token: "PASTE_ACCESS_TOKEN_HERE"
         log_backup_count: 10
-        logfile: "/var/log/xcollector.log"
+        logfile: "/var/log/xcollector/xcollector.log"
 #        tags:
 #            env: "prod"
 #            data_center: "us-east1-b"

@@ -22,8 +22,11 @@
 
 THIS_HOST=`hostname`
 TCOLLECTOR=${TCOLLECTOR-/usr/local/xcollector/xcollector.py}
-PIDFILE=${PIDFILE-/var/run/xcollector.pid}
-LOGFILE=${LOGFILE-/var/log/xcollector.log}
+PIDFILE=${PIDFILE-/var/run/xcollector/xcollector.pid}
+LOGFILE=${LOGFILE-/var/log/xcollector/xcollector.log}
+
+RUN_AS_USER=${RUN_AS_USER-xcollector}
+RUN_AS_GROUP=${RUN_AS_GROUP-xcollector}
 
 prog=xcollector
 if [ -f /etc/sysconfig/$prog ]; then
@@ -58,7 +61,7 @@ sanity_check() {
 start() {
   echo -n $"Starting $prog: "
   sanity_check || return $?
-  daemon --pidfile=$PIDFILE $TCOLLECTOR $OPTIONS
+  daemon --user=$RUN_AS_USER --pidfile=$PIDFILE $TCOLLECTOR $OPTIONS
   RETVAL=$?
   echo
   [ $RETVAL = 0 ] && touch ${lockfile}

@@ -29,8 +29,8 @@ if [ -r /etc/default/xcollector ]; then
     . /etc/default/xcollector
 fi
 
-PIDFILE=${PIDFILE-"/var/run/xcollector.pid"}
-LOGFILE=${LOGFILE-"/var/log/xcollector.log"}
+PIDFILE=${PIDFILE-"/var/run/xcollector/xcollector.pid"}
+LOGFILE=${LOGFILE-"/var/log/xcollector/xcollector.log"}
 THIS_HOST=`hostname`
 RUN_AS_USER=${RUN_AS_USER-xcollector}
 RUN_AS_GROUP=${RUN_AS_GROUP-xcollector}
