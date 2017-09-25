@@ -2,13 +2,6 @@
 
 set -e
 
-source check.sh
-
-#TODO remove this
-echo "Token is ${TOKEN}"
-
-# Commit this to Github
-
 yum install -y epel-release
 yum install -y memcached libmemcached nginx mysql tomcat httpd-tools unzip vim links policycoreutils-python net-tools
 
