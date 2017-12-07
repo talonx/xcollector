@@ -78,8 +78,17 @@ def find_memcached():
 def collect_stats(sock):
   """Sends the 'stats' command to the socket given in argument."""
   sock.send("stats\r\n")
-  stats = sock.recv(2048)
-  stats = [line.rstrip() for line in stats.split("\n")]
+
+  in_stats = ""
+  end_time = time.time() + 1
+
+  while time.time() < end_time:
+    in_stats += sock.recv(8192)
+    stats = [line.rstrip() for line in in_stats.split("\n")]
+    if stats[-1] == "" and stats[-2] == "END":
+      break
+    time.sleep(0.1)
+
   assert stats[-1] == "", repr(stats)
   assert stats[-2] == "END", repr(stats)
   # Each line is of the form: STAT statname value
