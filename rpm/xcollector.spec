@@ -141,13 +141,13 @@ if [ ! -L "/etc/xcollector" ]
 then
   ln -s %{tcollectordir}/conf /etc/xcollector
 fi
-if [ ! -L "%{tcollectordir}/collectors/0/nginx.py" ]
+if [ ! -L "%{tcollectordir}/collectors/0/grok_nginx.py" ]
 then
-  ln -s %{tcollectordir}/grok_scraper.py %{tcollectordir}/collectors/0/nginx.py
+  ln -s %{tcollectordir}/grok_scraper.py %{tcollectordir}/collectors/0/grok_nginx.py
 fi
-if [ ! -L "%{tcollectordir}/collectors/0/tomcat.py" ]
+if [ ! -L "%{tcollectordir}/collectors/0/grok_tomcat.py" ]
 then
-  ln -s %{tcollectordir}/grok_scraper.py %{tcollectordir}/collectors/0/tomcat.py
+  ln -s %{tcollectordir}/grok_scraper.py %{tcollectordir}/collectors/0/grok_tomcat.py
 fi
 if [ ! -d "/var/run/xcollector" ]
 then
