@@ -6,14 +6,14 @@ then
   ln -s /usr/local/xcollector/conf /etc/xcollector
 fi
 
-if [ ! -L "/usr/local/xcollector/collectors/0/nginx.py" ]
+if [ ! -L "/usr/local/xcollector/collectors/0/grok_nginx.py" ]
 then
-  ln -s /usr/local/xcollector/grok_scraper.py /usr/local/xcollector/collectors/0/nginx.py
+  ln -s /usr/local/xcollector/grok_scraper.py /usr/local/xcollector/collectors/0/grok_nginx.py
 fi
 
-if [ ! -L "/usr/local/xcollector/collectors/0/tomcat.py" ]
+if [ ! -L "/usr/local/xcollector/collectors/0/grok_tomcat.py" ]
 then
-  ln -s /usr/local/xcollector/grok_scraper.py /usr/local/xcollector/collectors/0/tomcat.py
+  ln -s /usr/local/xcollector/grok_scraper.py /usr/local/xcollector/collectors/0/grok_tomcat.py
 fi
 
 if [ ! -d "/var/run/xcollector" ]

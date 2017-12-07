@@ -1,8 +1,9 @@
 global:
     config_version: 2
 input:
-    type: file
-    path: /var/log/tomcat/localhost_access.log
+    type: file-name-pattern
+    pattern: localhost_access*.txt
+    path: /var/log/tomcat/
     readall: false
 grok:
     patterns_dir: ./patterns
