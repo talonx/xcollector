@@ -1,11 +1,9 @@
-# Put the RPM in the current directory.
-%define _rpmdir .
 # Don't check stuff, we know exactly what we want.
 %undefine __check_files
 
 %global tcollectordir /usr/local/xcollector
 %global collectorsdir %{tcollectordir}/collectors
-%global rootdir       %{_srcrpmdir}/..
+%global rootdir       %{_topdir}/../..
 %global eosdir        %{rootdir}/eos
 %global srccollectors %{rootdir}/collectors
 %global py2_sitelib   /usr/lib/python2.7/site-packages
