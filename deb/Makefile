@@ -52,9 +52,7 @@ deb:
 	cp $(VPATH)/collectors/lib/__init__.py build/usr/local/xcollector/collectors/lib/
 	cp $(VPATH)/collectors/lib/utils.py build/usr/local/xcollector/collectors/lib/
 	cp $(VPATH)/conf/*.yml build/usr/local/xcollector/conf/
-	cp -r $(VPATH)/grok_exporter-0.2.1.linux-amd64/ build/usr/local/xcollector/
-	mv build/usr/local/xcollector/grok_exporter-0.2.1.linux-amd64/grok_exporter_deb build/usr/local/xcollector/grok_exporter-0.2.1.linux-amd64/grok_exporter
-	rm build/usr/local/xcollector/grok_exporter-0.2.1.linux-amd64/grok_exporter_rpm
+	cp -r $(VPATH)/grok_exporter/ build/usr/local/xcollector/
 	cp $(VPATH)/tcollector.py build/usr/local/xcollector/xcollector.py
 	cp $(VPATH)/grok_scraper.py build/usr/local/xcollector/grok_scraper.py
 	set -e; { \
