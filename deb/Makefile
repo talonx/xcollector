@@ -66,6 +66,7 @@ deb:
             -e 's/@PACKAGE_REVISION@/$(PACKAGE_REVISION)/' \
 	    DEBIAN/control; \
         } >build/DEBIAN/control
+	cd build; find . -type f ! -regex '.*?DEBIAN.*' -printf '%P ' | xargs md5sum > DEBIAN/md5sums
 	dpkg-deb -b build dist/$(DEB)
 
 clean:
