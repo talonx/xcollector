@@ -9,8 +9,8 @@
 %global eosdir        %{rootdir}/eos
 %global srccollectors %{rootdir}/collectors
 %global py2_sitelib   /usr/lib/python2.7/site-packages
-%global grokexpdir    %{tcollectordir}/grok_exporter-0.2.1.linux-amd64
-%global grokexprootdir %{rootdir}/grok_exporter-0.2.1.linux-amd64
+%global grokexpdir    %{tcollectordir}/grok_exporter
+%global grokexprootdir %{rootdir}/grok_exporter
 
 BuildArch:      x86_64
 Name:           xcollector
@@ -46,7 +46,7 @@ mkdir -p %{buildroot}%{tcollectordir}/conf/
 mkdir -p %{buildroot}%{tcollectordir}/collectors/lib/
 mkdir -p %{buildroot}%{tcollectordir}/collectors/etc/
 mkdir -p %{buildroot}%{grokexpdir}/patterns/
-%{__install} -m 0755 -D %{grokexprootdir}/grok_exporter_rpm %{buildroot}%{grokexpdir}/grok_exporter
+%{__install} -m 0755 -D %{grokexprootdir}/grok_exporter %{buildroot}%{grokexpdir}/grok_exporter
 %{__install} -m 0755 -D %{grokexprootdir}/patterns/* %{buildroot}%{grokexpdir}/patterns/
 %{__install} -m 0755 -D %{rootdir}/conf/* %{buildroot}%{tcollectordir}/conf/
 %{__install} -m 0755 -D %{srccollectors}/__init__.py %{buildroot}%{tcollectordir}/collectors/
