@@ -159,13 +159,17 @@ fi
 XCOLLECTOR_USER="xcollector"
 XCOLLECTOR_GROUP="xcollector"
 
-if ! [ $(getent group $XCOLLECTOR_GROUP) ]; then
+if [ -z "$(getent group $XCOLLECTOR_GROUP)" ]; then
   groupadd --system $XCOLLECTOR_GROUP
+else
+  echo "Group [$XCOLLECTOR_GROUP] already exists"
 fi
 
-if ! [ $(id $XCOLLECTOR_USER) ]; then
+if [ -z "$(id $XCOLLECTOR_USER)" ]; then
   useradd --system --home-dir /usr/local/xcollector --no-create-home \
   -g $XCOLLECTOR_GROUP --shell /sbin/nologin $XCOLLECTOR_USER
+else
+  echo "User [$XCOLLECTOR_USER] already exists"
 fi
 
 chown -R $XCOLLECTOR_USER.$XCOLLECTOR_GROUP /usr/local/xcollector
