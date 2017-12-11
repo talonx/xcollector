@@ -1,4 +1,5 @@
-#! /bin/sh
+#!/bin/sh
+
 ### BEGIN INIT INFO
 # Provides:          xcollector
 # Required-Start:    $network $remote_fs
@@ -6,15 +7,12 @@
 # Should-Start:      opentsdb
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: Starts xcollector
+# Short-Description: XCollector - Data collection agent for apptuit.ai
 ### END INIT INFO
 
 WORKING_DIR=/usr/local/xcollector
 COLLECTOR_PATH=${WORKING_DIR}/collectors
 CONFIG_DIR=${WORKING_DIR}/conf
-#The group and user need to be commented, as for xcollector, we need fallback which does not happen unless these
-#are not set, even to empty.This is required for bt-metrics.log. Once that dependency is removed, we can force
-#running as xcollector always.
 #RUN_AS_USER=
 #RUN_AS_GROUP=
 
@@ -69,7 +67,7 @@ case $1 in
             --pidfile "$PIDFILE" --chuid $RUN_AS_USER:$RUN_AS_GROUP\
             --startas $DAEMON -- \
             -t host=$THIS_HOST \
-            -P "$PIDFILE" -D $EXTRA_TAGS_OPTS
+            -P "$PIDFILE" --daemonize $EXTRA_TAGS_OPTS
 
         log_end_msg $?
         ;;

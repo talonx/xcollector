@@ -86,7 +86,11 @@ def have_dead_grokkers():
 
 def kill_grokkers():
     for proc in processes:
-        proc.terminate()
+        exit_code = proc.poll()
+        if exit_code is None:
+            proc.terminate()
+        else:
+            LOG.error("Grokker with pid [" + proc.pid + "] exited with code: [" + exit_code + "]")
     for proc in processes:
         proc.wait()
         processes.remove(proc)
