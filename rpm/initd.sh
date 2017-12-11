@@ -3,8 +3,7 @@
 # xcollector   Startup script for the xcollector monitoring agent
 #
 # chkconfig:   2345 15 85
-# description: xcollector is an agent that collects and reports \
-#              monitoring data for Apptuit.
+# description: XCollector - Data collection agent for apptuit.ai
 # processname: xcollector
 # pidfile: /var/run/xcollector.pid
 #
@@ -12,9 +11,8 @@
 # Provides: xcollector
 # Required-Start: $local_fs $remote_fs $network $named
 # Required-Stop: $local_fs $remote_fs $network
-# Short-Description: start and stop xcollector monitoring agent
-# Description: xcollector is an agent that collects and reports
-#  monitoring data for Apptuit.
+# Short-Description: XCollector - Data collection agent for apptuit.ai
+# Description: XCollector - Data collection agent for apptuit.ai
 ### END INIT INFO
 
 # Source function library.
@@ -41,7 +39,7 @@ for TV in $EXTRA_TAGS; do
 done
 
 if [ -z "$OPTIONS" ]; then
-  OPTIONS="-D"
+  OPTIONS="--daemonize"
   OPTIONS="$OPTIONS -t host=$THIS_HOST -P $PIDFILE"
   OPTIONS="$OPTIONS $EXTRA_TAGS_OPTS"
 fi
