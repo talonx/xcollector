@@ -42,7 +42,6 @@ from Queue import Empty
 from Queue import Full
 from optparse import OptionParser, SUPPRESS_HELP
 
-
 # global variables.
 COLLECTORS = {}
 GENERATION = 0
@@ -181,7 +180,7 @@ class Collector(object):
             if line:
                 self.datalines.append(line)
                 self.last_datapoint = int(time.time())
-            self.buffer = self.buffer[idx+1:]
+            self.buffer = self.buffer[idx + 1:]
 
     def collect(self):
         """Reads input from the collector and returns the lines up to whomever
@@ -253,7 +252,6 @@ class StdinCollector(Collector):
             self.datalines.append(line.rstrip())
         else:
             ALIVE = False
-
 
     def shutdown(self):
 
@@ -330,14 +328,14 @@ class ReaderThread(threading.Thread):
 
         col.lines_received += 1
         if len(line) >= 1024 and not self.http:
-        # Limit in net.opentsdb.tsd.PipelineFactory, for telnet only
+            # Limit in net.opentsdb.tsd.PipelineFactory, for telnet only
             LOG.warning('%s line too long: %s', col.name, line)
             col.lines_invalid += 1
             return
-        parsed = re.match('^([-_./a-zA-Z0-9]+)\s+' # Metric name.
-                          '(\d+\.?\d+)\s+'               # Timestamp.
-                          '(\S+?)'                 # Value (int or float).
-                          '((?:\s+[-_./a-zA-Z0-9]+=[-_./a-zA-Z0-9]+)*)$', # Tags
+        parsed = re.match('^([-_./a-zA-Z0-9]+)\s+'  # Metric name.
+                          '(\d+\.?\d+)\s+'  # Timestamp.
+                          '(\S+?)'  # Value (int or float).
+                          '((?:\s+[-_./a-zA-Z0-9]+=[-_./a-zA-Z0-9]+)*)$',  # Tags
                           line)
         if parsed is None:
             LOG.warning('%s sent invalid data: %s', col.name, line)
@@ -385,8 +383,8 @@ class ReaderThread(threading.Thread):
                 # value instead of the last.  Fall through if we reach
                 # the dedup interval so we can print the value.
                 if ((not self.deduponlyzero or (self.deduponlyzero and float(value) == 0.0)) and
-                    col.values[key][0] == value and
-                    (timestamp - col.values[key][3] < self.dedupinterval)):
+                        col.values[key][0] == value and
+                        (timestamp - col.values[key][3] < self.dedupinterval)):
                     col.values[key] = (value, True, line, col.values[key][3])
                     return
 
@@ -395,8 +393,8 @@ class ReaderThread(threading.Thread):
                 # replay the last value we skipped (if changed) so the jumps in
                 # our graph are accurate,
                 if ((col.values[key][1] or
-                    (timestamp - col.values[key][3] >= self.dedupinterval))
-                    and col.values[key][0] != value):
+                     (timestamp - col.values[key][3] >= self.dedupinterval))
+                        and col.values[key][0] != value):
                     col.lines_sent += 1
                     if not self.readerq.nput(col.values[key][2]):
                         self.lines_dropped += 1
@@ -443,7 +441,7 @@ class SenderThread(threading.Thread):
 
         self.dryrun = dryrun
         self.reader = reader
-        self.tags = sorted(tags.items()) # dictionary transformed to list
+        self.tags = sorted(tags.items())  # dictionary transformed to list
         self.http = http
         self.http_api_path = http_api_path
         self.http_username = http_username
@@ -456,13 +454,13 @@ class SenderThread(threading.Thread):
         self.current_tsd = -1  # Index in self.hosts where we're at.
         self.host = None  # The current TSD host we've selected.
         self.port = None  # The port of the current TSD.
-        self.tsd = None   # The socket connected to the aforementioned TSD.
+        self.tsd = None  # The socket connected to the aforementioned TSD.
         self.last_verify = 0
-        self.reconnectinterval = reconnectinterval # in seconds.
+        self.reconnectinterval = reconnectinterval  # in seconds.
         self.time_reconnect = 0  # if reconnectinterval > 0, used to track the time.
         self.sendq = []
         self.self_report_stats = self_report_stats
-        self.maxtags = maxtags # The maximum number of tags TSD will accept.
+        self.maxtags = maxtags  # The maximum number of tags TSD will accept.
 
     def pick_connection(self):
         """Picks up a random host/port connection."""
@@ -514,7 +512,6 @@ class SenderThread(threading.Thread):
                       % (x[0], ts, x[2], x[1]) for x in strs]
             for string in strout:
                 self.sendq.append(string)
-
 
     def run(self):
         """Main loop.  A simple scheduler.  Loop waiting for 5
@@ -583,7 +580,7 @@ class SenderThread(threading.Thread):
             try:
                 self.tsd.close()
             except socket.error, msg:
-                pass    # not handling that
+                pass  # not handling that
             self.time_reconnect = time.time()
             return False
 
@@ -671,7 +668,7 @@ class SenderThread(threading.Thread):
                     self.tsd.settimeout(15)
                     self.tsd.connect(sockaddr)
                     # if we get here it connected
-                    LOG.debug('Connection to %s was successful'%(str(sockaddr)))
+                    LOG.debug('Connection to %s was successful' % (str(sockaddr)))
                     break
                 except socket.error, msg:
                     LOG.warning('Connection attempt failed to %s:%d: %s',
@@ -734,9 +731,9 @@ class SenderThread(threading.Thread):
             protocol = "https"
         else:
             protocol = "http"
-        details=""
+        details = ""
         if LOG.level == logging.DEBUG:
-            details="?details"
+            details = "?details"
         return "%s://%s:%s/%s%s" % (protocol, self.host, self.port, self.http_api_path, details)
 
     def send_data_via_http(self):
@@ -747,10 +744,10 @@ class SenderThread(threading.Thread):
             parts = line.split(None, 3)
             # not all metrics have metric-specific tags
             if len(parts) == 4:
-              (metric, timestamp, value, raw_tags) = parts
+                (metric, timestamp, value, raw_tags) = parts
             else:
-              (metric, timestamp, value) = parts
-              raw_tags = ""
+                (metric, timestamp, value) = parts
+                raw_tags = ""
             # process the tags
             metric_tags = {}
             for tag in raw_tags.strip().split():
@@ -762,15 +759,16 @@ class SenderThread(threading.Thread):
             metric_entry["value"] = float(value)
             metric_entry["tags"] = dict(self.tags).copy()
             if len(metric_tags) + len(metric_entry["tags"]) > self.maxtags:
-              metric_tags_orig = set(metric_tags)
-              subset_metric_keys = frozenset(metric_tags[:len(metric_tags[:self.maxtags-len(metric_entry["tags"])])])
-              metric_tags = dict((k, v) for k, v in metric_tags.iteritems() if k in subset_metric_keys)
-              LOG.error("Exceeding maximum permitted metric tags - removing %s for metric %s",
-                        str(metric_tags_orig - set(metric_tags)), metric)
+                metric_tags_orig = set(metric_tags)
+                subset_metric_keys = frozenset(
+                    metric_tags[:len(metric_tags[:self.maxtags - len(metric_entry["tags"])])])
+                metric_tags = dict((k, v) for k, v in metric_tags.iteritems() if k in subset_metric_keys)
+                LOG.error("Exceeding maximum permitted metric tags - removing %s for metric %s",
+                          str(metric_tags_orig - set(metric_tags)), metric)
             if "host" in metric_tags.keys() and metric_tags["host"] == "__..skip_tag..__":
-              metric_tags.pop("host")
-              if "host" in metric_entry["tags"]:
-                  metric_entry["tags"].pop("host",None)
+                metric_tags.pop("host")
+                if "host" in metric_entry["tags"]:
+                    metric_entry["tags"].pop("host", None)
             metric_entry["tags"].update(metric_tags)
             metrics.append(metric_entry)
 
@@ -780,15 +778,15 @@ class SenderThread(threading.Thread):
                                                       indent=4)
             return
 
-        if((self.current_tsd == -1) or (len(self.hosts) > 1)):
+        if ((self.current_tsd == -1) or (len(self.hosts) > 1)):
             self.pick_connection()
 
         url = self.build_http_url()
         LOG.debug("Sending metrics to %s", url)
         req = urllib2.Request(url)
         if self.http_username and self.http_password:
-          req.add_header("Authorization", "Basic %s"
-                         % base64.b64encode("%s:%s" % (self.http_username, self.http_password)))
+            req.add_header("Authorization", "Basic %s"
+                           % base64.b64encode("%s:%s" % (self.http_username, self.http_password)))
         req.add_header("Content-Type", "application/json")
         try:
             response = urllib2.urlopen(req, json.dumps(metrics))
@@ -853,93 +851,95 @@ def parse_cmdline(argv):
 
     # get arguments
     parser = OptionParser(description='Manages collectors which gather '
-                                       'data and report back. Please refer to '
+                                      'data and report back. Please refer to '
                                       '/etc/xcollector/xcollector.yml for the list of configuration '
                                       'parameters')
     parser.add_option('-c', '--collector-dir', dest='cdir', metavar='DIR',
-                        default=defaults['cdir'],
-                        help=SUPPRESS_HELP) #'Directory where the collectors are located.'
+                      default=defaults['cdir'],
+                      help=SUPPRESS_HELP)  # 'Directory where the collectors are located.'
     parser.add_option('-d', '--dry-run', dest='dryrun', action='store_true',
-                        default=defaults['dryrun'],
-                        help=SUPPRESS_HELP) #'Don\'t actually send anything to the TSD, just print the datapoints.'
+                      default=defaults['dryrun'],
+                      help=SUPPRESS_HELP)  # 'Don\'t actually send anything to the TSD, just print the datapoints.'
     parser.add_option('-D', '--daemonize', dest='daemonize', action='store_true',
                       default=defaults['daemonize'],
-                      help=SUPPRESS_HELP) # 'Run as a background daemon.'
+                      help=SUPPRESS_HELP)  # 'Run as a background daemon.'
     parser.add_option('-H', '--host', dest='host',
-                        metavar='HOST',
-                        default=defaults['host'],
-                        help=SUPPRESS_HELP) # 'Hostname to use to connect to the TSD.'
+                      metavar='HOST',
+                      default=defaults['host'],
+                      help=SUPPRESS_HELP)  # 'Hostname to use to connect to the TSD.'
     parser.add_option('-L', '--hosts-list', dest='hosts',
-                        metavar='HOSTS',
-                        default=defaults['hosts'],
-                        help=SUPPRESS_HELP) # 'List of host:port to connect to tsd\'s (comma separated).'
+                      metavar='HOSTS',
+                      default=defaults['hosts'],
+                      help=SUPPRESS_HELP)  # 'List of host:port to connect to tsd\'s (comma separated).'
     parser.add_option('--no-tcollector-stats', dest='no_tcollector_stats',
-                        action='store_true',
-                        default=defaults['no_tcollector_stats'],
-                        help=SUPPRESS_HELP) # 'Prevent tcollector from reporting its own stats to TSD'
+                      action='store_true',
+                      default=defaults['no_tcollector_stats'],
+                      help=SUPPRESS_HELP)  # 'Prevent tcollector from reporting its own stats to TSD'
     parser.add_option('-s', '--stdin', dest='stdin', action='store_true',
-                        default=defaults['stdin'],
-                        help=SUPPRESS_HELP) # 'Run once, read and dedup data points from stdin.'
+                      default=defaults['stdin'],
+                      help=SUPPRESS_HELP)  # 'Run once, read and dedup data points from stdin.'
     parser.add_option('-p', '--port', dest='port', type='int',
-                        default=defaults['port'], metavar='PORT',
-                        help=SUPPRESS_HELP) # 'Port to connect to the TSD instance on. default=%default'
+                      default=defaults['port'], metavar='PORT',
+                      help=SUPPRESS_HELP)  # 'Port to connect to the TSD instance on. default=%default'
     parser.add_option('-v', dest='verbose', action='store_true',
-                        default=defaults['verbose'],
-                        help=SUPPRESS_HELP) # 'Verbose mode (log debug messages).'
+                      default=defaults['verbose'],
+                      help=SUPPRESS_HELP)  # 'Verbose mode (log debug messages).'
     parser.add_option('-t', '--tag', dest='tags', action='append',
                       default=[], metavar='TAG',
-                      help=SUPPRESS_HELP) # 'Tags to append to all timeseries we send, e.g.: -t TAG=VALUE -t TAG2=VALUE'
+                      help=SUPPRESS_HELP)  # 'Tags to append to all timeseries we send, e.g.: -t TAG=VALUE -t TAG2=VALUE'
     parser.add_option('-P', '--pidfile', dest='pidfile',
                       default=defaults['pidfile'],
-                      metavar='FILE', help=SUPPRESS_HELP) # 'Write our pidfile'
+                      metavar='FILE', help=SUPPRESS_HELP)  # 'Write our pidfile'
     parser.add_option('--dedup-interval', dest='dedupinterval', type='int',
-                        default=defaults['dedupinterval'], metavar='DEDUPINTERVAL',
-                        help=SUPPRESS_HELP) # 'Number of seconds in which successive duplicate '
-                                            # 'datapoints are suppressed before sending to the TSD. '
-                                            # 'Use zero to disable. '
-                                            # 'default=%default'
+                      default=defaults['dedupinterval'], metavar='DEDUPINTERVAL',
+                      help=SUPPRESS_HELP)  # 'Number of seconds in which successive duplicate '
+    # 'datapoints are suppressed before sending to the TSD. '
+    # 'Use zero to disable. '
+    # 'default=%default'
     parser.add_option('--dedup-only-zero', dest='deduponlyzero', action='store_true',
-                        default=defaults['deduponlyzero'],
-                        help=SUPPRESS_HELP) # 'Only dedup 0 values.'
+                      default=defaults['deduponlyzero'],
+                      help=SUPPRESS_HELP)  # 'Only dedup 0 values.'
     parser.add_option('--evict-interval', dest='evictinterval', type='int',
-                        default=defaults['evictinterval'], metavar='EVICTINTERVAL',
-                        help=SUPPRESS_HELP) # 'Number of seconds after which to remove cached '
-                                            # 'values of old data points to save memory. '
-                                            # 'default=%default'
+                      default=defaults['evictinterval'], metavar='EVICTINTERVAL',
+                      help=SUPPRESS_HELP)  # 'Number of seconds after which to remove cached '
+    # 'values of old data points to save memory. '
+    # 'default=%default'
     parser.add_option('--allowed-inactivity-time', dest='allowed_inactivity_time', type='int',
-                        default=ALLOWED_INACTIVITY_TIME, metavar='ALLOWEDINACTIVITYTIME',
-                            help=SUPPRESS_HELP) # 'How long to wait for datapoints before assuming '
-                                                # 'a collector is dead and restart it. '
-                                                # 'default=%default'
+                      default=ALLOWED_INACTIVITY_TIME, metavar='ALLOWEDINACTIVITYTIME',
+                      help=SUPPRESS_HELP)  # 'How long to wait for datapoints before assuming '
+    # 'a collector is dead and restart it. '
+    # 'default=%default'
     parser.add_option('--remove-inactive-collectors', dest='remove_inactive_collectors', action='store_true',
-                        default=defaults['remove_inactive_collectors'], help=SUPPRESS_HELP) # 'Remove collectors not sending data '
-                                                                                            # 'in the max allowed
+                      default=defaults['remove_inactive_collectors'],
+                      help=SUPPRESS_HELP)  # 'Remove collectors not sending data '
+    # 'in the max allowed
     # inactivity interval'
     parser.add_option('--max-bytes', dest='max_bytes', type='int',
-                        default=defaults['max_bytes'],
-                        help=SUPPRESS_HELP) # 'Maximum bytes per a logfile.'
+                      default=defaults['max_bytes'],
+                      help=SUPPRESS_HELP)  # 'Maximum bytes per a logfile.'
     parser.add_option('--backup-count', dest='backup_count', type='int',
-                        default=defaults['backup_count'], help=SUPPRESS_HELP) # 'Maximum number of logfiles to backup.'
+                      default=defaults['backup_count'], help=SUPPRESS_HELP)  # 'Maximum number of logfiles to backup.'
     parser.add_option('--logfile', dest='logfile', type='str',
-                        default=defaults['logfile'],
-                        help=SUPPRESS_HELP) # 'Filename where logs are written to.'
-    parser.add_option('--reconnect-interval',dest='reconnectinterval', type='int',
-                        default=defaults['reconnectinterval'], metavar='RECONNECTINTERVAL',
-                        help=SUPPRESS_HELP) # 'Number of seconds after which the connection to'
-                                            # 'the TSD hostname reconnects itself. This is useful'
-                                            # 'when the hostname is a multiple A record (RRDNS).'
+                      default=defaults['logfile'],
+                      help=SUPPRESS_HELP)  # 'Filename where logs are written to.'
+    parser.add_option('--reconnect-interval', dest='reconnectinterval', type='int',
+                      default=defaults['reconnectinterval'], metavar='RECONNECTINTERVAL',
+                      help=SUPPRESS_HELP)  # 'Number of seconds after which the connection to'
+    # 'the TSD hostname reconnects itself. This is useful'
+    # 'when the hostname is a multiple A record (RRDNS).'
     parser.add_option('--max-tags', dest='maxtags', type=int, default=defaults['maxtags'],
-                        help=SUPPRESS_HELP) # 'The maximum number of tags to send to our TSD Instances'
+                      help=SUPPRESS_HELP)  # 'The maximum number of tags to send to our TSD Instances'
     parser.add_option('--http', dest='http', action='store_true', default=defaults['http'],
-                        help=SUPPRESS_HELP) # 'Send the data via the http interface'
+                      help=SUPPRESS_HELP)  # 'Send the data via the http interface'
     parser.add_option('--http-api-path', dest='http_api_path', type='str',
-                      default=defaults['http_api_path'], help=SUPPRESS_HELP) # 'URL path to use for HTTP requests to TSD.'
+                      default=defaults['http_api_path'],
+                      help=SUPPRESS_HELP)  # 'URL path to use for HTTP requests to TSD.'
     parser.add_option('--http-username', dest='http_username', default=defaults['http_username'],
-                      help=SUPPRESS_HELP) # 'Username to use for HTTP Basic Auth when sending the data via HTTP'
+                      help=SUPPRESS_HELP)  # 'Username to use for HTTP Basic Auth when sending the data via HTTP'
     parser.add_option('--http-password', dest='http_password', default=defaults['http_password'],
-                      help=SUPPRESS_HELP) # 'Password to use for HTTP Basic Auth when sending the data via HTTP'
+                      help=SUPPRESS_HELP)  # 'Password to use for HTTP Basic Auth when sending the data via HTTP'
     parser.add_option('--ssl', dest='ssl', action='store_true', default=defaults['ssl'],
-                      help=SUPPRESS_HELP) # 'Enable SSL - used in conjunction with http'
+                      help=SUPPRESS_HELP)  # 'Enable SSL - used in conjunction with http'
     (options, args) = parser.parse_args(args=argv[1:])
     cmdline_dict = tag_str_list_to_dict(options.tags)
     for key, value in defaults['tags'].iteritems():
@@ -955,9 +955,6 @@ def parse_cmdline(argv):
     # We cannot write to stdout when we're a daemon.
     if (options.daemonize or options.max_bytes) and not options.backup_count:
         options.backup_count = 1
-    if not options.http_username or options.http_username == '' or options.http_username == 'PASTE_ACCESS_TOKEN_HERE':
-        parser.error('access_token is not specified. Please add Apptuit issued access_token to '
-                     '/etc/xcollector/xcollector.yml')
     return (options, args)
 
 
@@ -983,7 +980,7 @@ def daemonize():
         try:
             os.close(fd)
         except OSError:  # This FD wasn't opened...
-            pass         # ... ignore the exception.
+            pass  # ... ignore the exception.
 
 
 def setup_python_path(collector_dir):
@@ -1000,6 +997,21 @@ def setup_python_path(collector_dir):
     LOG.debug('Set PYTHONPATH to %r', pythonpath)
 
 
+def check_file_permissions(file_path):
+    if file_path is None:
+        return True
+    if os.path.exists(file_path):
+        if not os.access(file_path, os.W_OK):
+            sys.stderr.write("Can not write to the file: [" + file_path + "]\n")
+            return False
+    else:
+        log_dir = os.path.dirname(file_path)
+        if not os.access(log_dir, os.W_OK):
+            sys.stderr.write("Can not create files in the directory: [" + log_dir + "]\n")
+            return False
+    return True
+
+
 def main(argv):
     """The main tcollector entry point and loop."""
 
@@ -1008,6 +1020,14 @@ def main(argv):
     except:
         sys.stderr.write("Unexpected error: %s" % sys.exc_info()[0])
         return 1
+
+    if not check_file_permissions(options.logfile or DEFAULT_LOG) or not check_file_permissions(options.pidfile):
+        return 2
+
+    if not options.http_username or options.http_username == '' or options.http_username == 'PASTE_ACCESS_TOKEN_HERE':
+        sys.stderr.write('access_token is not specified. Please add Apptuit issued access_token to '
+                         '/etc/xcollector/xcollector.yml\n')
+        return 3
 
     if options.daemonize:
         daemonize()
@@ -1068,6 +1088,7 @@ def main(argv):
                     host, port = hostport.split(":")
                 return (host, int(port))
             return (hostport, DEFAULT_PORT)
+
         options.hosts = [splitHost(host) for host in options.hosts.split(",")]
         if options.host != "localhost" or options.port != DEFAULT_PORT:
             options.hosts.append((options.host, options.port))
@@ -1091,11 +1112,12 @@ def main(argv):
 
     # We're exiting, make sure we don't leave any collector behind.
     for col in all_living_collectors():
-      col.shutdown()
+        col.shutdown()
     LOG.debug('Shutting down -- joining the reader thread.')
     reader.join()
     LOG.debug('Shutting down -- joining the sender thread.')
     sender.join()
+
 
 def stdin_loop(options, modules, sender, tags):
     """The main loop of the program that runs when we are in stdin mode."""
@@ -1110,6 +1132,7 @@ def stdin_loop(options, modules, sender, tags):
             LOG.info('Heartbeat (%d collectors running)'
                      % sum(1 for col in all_living_collectors()))
             next_heartbeat = now + 600
+
 
 def main_loop(options, modules, sender, tags):
     """The main loop of the program that runs when we're not in stdin mode."""
@@ -1166,12 +1189,12 @@ def load_config_module(name, options, tags):
     """
 
     if isinstance(name, str):
-      LOG.info('Loading %s', name)
-      d = {}
-      # Strip the trailing .py
-      module = __import__(name[:-3], d, d)
+        LOG.info('Loading %s', name)
+        d = {}
+        # Strip the trailing .py
+        module = __import__(name[:-3], d, d)
     else:
-      module = reload(name)
+        module = reload(name)
     onload = module.__dict__.get('onload')
     if callable(onload):
         try:
@@ -1269,7 +1292,7 @@ def shutdown_signal(signum, frame):
 
 
 def kill(proc, signum=signal.SIGTERM):
-  os.killpg(proc.pid, signum)
+    os.killpg(proc.pid, signum)
 
 
 def shutdown():
@@ -1312,7 +1335,7 @@ def reap_children():
         # any other status code is an error and is logged.
         if status == 13:
             LOG.info('removing %s from the list of collectors (by request)',
-                      col.name)
+                     col.name)
             col.dead = True
         elif status != 0:
             LOG.warning('collector %s terminated after %d seconds with '
@@ -1322,6 +1345,7 @@ def reap_children():
         else:
             register_collector(Collector(col.name, col.interval, col.filename,
                                          col.mtime, col.lastspawn))
+
 
 def check_children(options):
     """When a child process hasn't received a datapoint in a while,
@@ -1412,15 +1436,15 @@ def spawn_children():
                 col.killstate = 1
             elif col.killstate == 1:
                 LOG.error('error: %s (interval=%d, pid=%d) still not dead, '
-                           'SIGKILL sent',
-                           col.name, col.interval, col.proc.pid)
+                          'SIGKILL sent',
+                          col.name, col.interval, col.proc.pid)
                 kill(col.proc, signal.SIGKILL)
                 col.nextkill = now + 5
                 col.killstate = 2
             else:
                 LOG.error('error: %s (interval=%d, pid=%d) needs manual '
-                           'intervention to kill it',
-                           col.name, col.interval, col.proc.pid)
+                          'intervention to kill it',
+                          col.name, col.interval, col.proc.pid)
                 col.nextkill = now + 300
 
 
@@ -1461,8 +1485,8 @@ def populate_collectors(coldir):
                     # this...
                     if col.interval != interval:
                         LOG.error('two collectors with the same name %s and '
-                                   'different intervals %d and %d',
-                                   colname, interval, col.interval)
+                                  'different intervals %d and %d',
+                                  colname, interval, col.interval)
                         continue
 
                     # we have to increase the generation or we will kill
@@ -1485,7 +1509,7 @@ def populate_collectors(coldir):
     for col in all_collectors():
         if col.generation < GENERATION:
             LOG.info('collector %s removed from the filesystem, forgetting',
-                      col.name)
+                     col.name)
             col.shutdown()
             to_delete.append(col.name)
     for name in to_delete:

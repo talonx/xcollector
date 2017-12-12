@@ -31,8 +31,6 @@ if [ -f /etc/sysconfig/$prog ]; then
   . /etc/sysconfig/$prog
 fi
 
-lockfile=${LOCKFILE-/var/lock/subsys/xcollector}
-
 EXTRA_TAGS_OPTS=""
 for TV in $EXTRA_TAGS; do
     EXTRA_TAGS_OPTS=${EXTRA_TAGS_OPTS}" -t ${TV}"
@@ -45,24 +43,21 @@ if [ -z "$OPTIONS" ]; then
 fi
 
 sanity_check() {
-  for i in "$PIDFILE" "$LOGFILE"; do
-    # If the file doesn't exist, check that we have write access to its parent
-    # directory to be able to create it.
-    test -e "$i" || i=`dirname "$i"`
-    test -w "$i" || {
-      echo >&2 "error: Cannot write to $i"
-      return 4
-    }
+  for file in "$PIDFILE" "$LOGFILE"; do
+    parentdir=`dirname "$file"`
+    if [ ! -d "$parentdir" ]; then
+      install -m 755 -o $RUN_AS_USER -g $RUN_AS_GROUP -d $parentdir
+    fi
   done
 }
 
 start() {
   echo -n $"Starting $prog: "
   sanity_check || return $?
+  find `dirname ${TCOLLECTOR}` -name '*.pyc' -delete
   daemon --user=$RUN_AS_USER --pidfile=$PIDFILE $TCOLLECTOR $OPTIONS
   RETVAL=$?
   echo
-  [ $RETVAL = 0 ] && touch ${lockfile}
   return $RETVAL
 }
 
@@ -72,11 +67,10 @@ start() {
 stop() {
   echo -n $"Stopping $prog: "
   sanity_check || return $?
-  find `dirname ${TCOLLECTOR}` -name '*.pyc' -delete
   killproc -p $PIDFILE -d 15 $TCOLLECTOR
   RETVAL=$?
   echo
-  [ $RETVAL = 0 ] && rm -f ${lockfile} $PIDFILE
+  return $RETVAL
 }
 
 # See how we were called.
