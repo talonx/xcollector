@@ -90,7 +90,7 @@ def kill_grokkers():
         if exit_code is None:
             proc.terminate()
         else:
-            LOG.error("Grokker with pid [" + proc.pid + "] exited with code: [" + exit_code + "]")
+            LOG.error("Grokker with pid [%d] exited with code: [%d]", proc.pid, exit_code)
     for proc in processes:
         proc.wait()
         processes.remove(proc)
