@@ -182,6 +182,9 @@ def load_config(config_file_path):
             if not os.path.exists(input_path):
                 LOG.error("The folder " + input_path + " does not exist")
                 die()
+            if not os.access(input_path, os.R_OK):
+                LOG.error("Can't read the folder: " + input_path)
+                die()
             if 'pattern' not in yconfig['input']:
                 LOG.error("Can't find input filename pattern in the config")
                 die()
