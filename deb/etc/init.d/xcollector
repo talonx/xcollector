@@ -78,7 +78,7 @@ case $1 in
             log_failure_msg "$PIDFILE doesn't exist. xcollector not running?"
             exit 0
         fi
-        killproc -p "$PIDFILE" "$DAEMON" && rm -f "$PIDFILE"
+        start-stop-daemon --stop --retry 30 --quiet --oknodo -u $RUN_AS_USER --pidfile "$PIDFILE" && rm -f "$PIDFILE"
         rv=$?
         log_end_msg 0
         exit $rv
