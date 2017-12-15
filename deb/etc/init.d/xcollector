@@ -1,10 +1,16 @@
 #!/bin/sh
-
+#
+# xcollector   Startup script for the xcollector monitoring agent
+#
+# chkconfig:   2345 15 85
+# description: XCollector - Data collection agent for apptuit.ai
+# processname: xcollector
+# pidfile: /var/run/xcollector/xcollector.pid
+#
 ### BEGIN INIT INFO
 # Provides:          xcollector
 # Required-Start:    $network $remote_fs
 # Required-Stop:     $network $remote_fs
-# Should-Start:      opentsdb
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: XCollector - Data collection agent for apptuit.ai
