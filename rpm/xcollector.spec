@@ -48,13 +48,13 @@ mkdir -p %{buildroot}%{grokexpdir}/patterns/
 %{__install} -m 0755 -D %{grokexprootdir}/patterns/* %{buildroot}%{grokexpdir}/patterns/
 %{__install} -m 0755 -D %{rootdir}/conf/* %{buildroot}%{tcollectordir}/conf/
 %{__install} -m 0755 -D %{srccollectors}/__init__.py %{buildroot}%{tcollectordir}/collectors/
-%{__install} -m 0755 -D %{srccollectors}/lib/*py* %{buildroot}%{tcollectordir}/collectors/lib/
-%{__install} -m 0755 -D %{srccollectors}/etc/* %{buildroot}%{tcollectordir}/collectors/etc/
+%{__install} -m 0755 -D %{srccollectors}/lib/*.py %{buildroot}%{tcollectordir}/collectors/lib/
+%{__install} -m 0755 -D %{srccollectors}/etc/*.py %{buildroot}%{tcollectordir}/collectors/etc/
 %{__install} -m 0755 -D %{rootdir}/tcollector.py %{buildroot}%{tcollectordir}/xcollector.py
 %{__install} -m 0755 -D %{rootdir}/grok_scraper.py %{buildroot}%{tcollectordir}/grok_scraper.py
 
 # Install Collectors
-%{__install} -m 0755 -D %{srccollectors}/0/* %{buildroot}%{collectorsdir}/0/
+%{__install} -m 0755 -D %{srccollectors}/0/*.py %{buildroot}%{collectorsdir}/0/
 
 # Install EOS files
 %{__install} -m 0755 -D %{eosdir}/collectors/agent*.sh %{buildroot}/%{collectorsdir}/0/
