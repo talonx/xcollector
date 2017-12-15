@@ -42,38 +42,37 @@ DATASETS = {
 
 MEMCACHE_NAME_MAPPING = yaml_conf.load_collector_configuration('memcached_metrics.yml')
 
+
 def find_memcached():
   """Yields all the ports that memcached is listening to, according to ps."""
-  flags = "-lf"
-  if platform.system() == 'Linux':
-    distro = platform.linux_distribution()
-    if distro[0] == 'Ubuntu':
-      flags = "-af"
-  p = subprocess.Popen(["pgrep", flags, "memcached"], stdout=subprocess.PIPE)
+  p = subprocess.Popen(["ps", "-Ao", "args"], stdout=subprocess.PIPE)
   stdout, stderr = p.communicate()
-  assert p.returncode in (0, 1), "pgrep returned %r" % p.returncode
+  assert p.returncode in (0, 1), "ps returned %r" % p.returncode
   for line in stdout.split("\n"):
     if not line:
       continue
 
+    if line.find("memcached") < 0:
+      continue
+
     host = line.find(" -l ")
     if host < 0:
-        host="127.0.0.1"
+      host = "127.0.0.1"
     else:
-        host = line[host + 4:].split(" ")[0]
-    #host = socket.inet_pton(socket.AF_INET,host)
+      host = line[host + 4:].split(" ")[0]
+    # host = socket.inet_pton(socket.AF_INET,host)
 
     port = line.find(" -p ")
     if port < 0:
-      print >>sys.stderr, "Weird memcached process without a -p argument:", line
+      print >> sys.stderr, "Weird memcached process without a -p argument:", line
       continue
-    port = line[port + 4 : line.index(" ", port + 5)]
+    port = line[port + 4: line.index(" ", port + 5)]
     port = int(port)
     if port in DATASETS:
-      print >>sys.stderr, "Host and port: %s %d" % (host, port)
-      yield host,port
+      print >> sys.stderr, "Host and port: %s %d" % (host, port)
+      yield host, port
     else:
-      print >>sys.stderr, "Unknown memached port:", port
+      print >> sys.stderr, "Unknown memached port:", port
 
 def collect_stats(sock):
   """Sends the 'stats' command to the socket given in argument."""
