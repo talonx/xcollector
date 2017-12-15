@@ -2,7 +2,7 @@
 # Copyright (C) 2017  AgilX Inc.
 #
 
-PACKAGE_VERSION := 0.6.5
+PACKAGE_VERSION := 0.8.0
 PACKAGE_REVISION := 1
 
 # Various commands we need.
