@@ -90,7 +90,7 @@ def kill_grokkers():
         if exit_code is None:
             proc.terminate()
         else:
-            LOG.error("Grokker with pid [" + proc.pid + "] exited with code: [" + exit_code + "]")
+            LOG.error("Grokker with pid [%d] exited with code: [%d]", proc.pid, exit_code)
     for proc in processes:
         proc.wait()
         processes.remove(proc)
@@ -181,6 +181,9 @@ def load_config(config_file_path):
         if input_type == "file-name-pattern":
             if not os.path.exists(input_path):
                 LOG.error("The folder " + input_path + " does not exist")
+                die()
+            if not os.access(input_path, os.R_OK):
+                LOG.error("Can't read the folder: " + input_path)
                 die()
             if 'pattern' not in yconfig['input']:
                 LOG.error("Can't find input filename pattern in the config")
