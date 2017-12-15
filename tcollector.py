@@ -1313,7 +1313,7 @@ def shutdown():
         col.shutdown()
 
     LOG.info('exiting')
-    sys.exit(1)
+    sys.exit(0)
 
 
 def reap_children():

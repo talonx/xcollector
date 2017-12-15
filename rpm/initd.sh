@@ -5,7 +5,7 @@
 # chkconfig:   2345 15 85
 # description: XCollector - Data collection agent for apptuit.ai
 # processname: xcollector
-# pidfile: /var/run/xcollector.pid
+# pidfile: /var/run/xcollector/xcollector.pid
 #
 ### BEGIN INIT INFO
 # Provides: xcollector
