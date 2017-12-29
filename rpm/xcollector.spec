@@ -10,14 +10,18 @@
 %global grokexpdir    %{tcollectordir}/grok_exporter
 %global grokexprootdir %{rootdir}/grok_exporter
 
-BuildArch:      x86_64
+# Don't terminate the build because we are shipping grok binaries.
+# On incompatible archs other collectors in xcollector will continue to work
+%define _binaries_in_noarch_packages_terminate_build   0
+
+BuildArch:      @RPM_TARGET@
 Name:           xcollector
 Group:          System/Monitoring
 Version:        @PACKAGE_VERSION@
 Release:        @RPM_REVISION@
 Distribution:   buildhash=@GIT_FULLSHA1@
 License:        LGPLv3+
-Summary:        Variant of tcollector that pushes metrics to Apptuit
+Summary:        XCollector - Data collection agent for apptuit.ai
 URL:            http://apptuit.ai/xcollector.html
 Provides:       xcollector = @PACKAGE_VERSION@-@RPM_REVISION@_@GIT_SHORTSHA1@
 Requires:       python(abi) >= @PYTHON_VERSION@
@@ -27,6 +31,7 @@ Requires:       python-requests
 Requires:       PyYAML
 
 %description
+Variant of tcollector that pushes metrics to Apptuit.AI
 The xcollector package includes the basic collector and
 all of the dependencies these collectors need.
 
