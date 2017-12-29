@@ -6,13 +6,11 @@ python:
   - "2.6"
   - "2.7"
 install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y rpm
   - pip install pylint ordereddict
 script:
   - ./pylint-runner.py -s
   - ./tests.py
-  - cd rpm
-  - make
-  - cd ..
-  - cd deb
-  - make
-  - cd ..
+  - cd rpm; make; cd ..
+  - cd deb; make; cd ..
