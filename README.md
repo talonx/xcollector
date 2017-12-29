@@ -1,3 +1,4 @@
+[![Latest release](https://img.shields.io/github/release/apptuitai/xcollector.svg)](https://github.com/ApptuitAI/xcollector/releases/latest) [![Build Status](https://api.travis-ci.org/ApptuitAI/xcollector.svg?branch=apptuit-master)](https://travis-ci.org/ApptuitAI/xcollector) 
 # XCollector
 XCollector is a pluggable data collection framework for reporting metrics to  [apptuit.ai](https://apptuit.ai). It comes with built-in collectors for collecting server metrics. It provides a very simple framework to easily add support for collecting metrics from other services and APIs.
 
