@@ -1,7 +1,7 @@
 Package: xcollector
 Version: @PACKAGE_VERSION@-@PACKAGE_REVISION@
 License: LGPLv3+
-Architecture: amd64
+Architecture: all
 Maintainer: <hello@apptuit.ai>
 Installed-Size: 7068
 Depends: python, python-dev, python-mysqldb, python-yaml, python-requests
@@ -9,5 +9,4 @@ Provides: xcollector
 Section: System/Monitoring
 Priority: extra
 Homepage: https://apptuit.ai/xcollector
-Description: The xcollector package includes the basic collector and
- all of the dependencies these collectors need.
+Description: XCollector - Data collection agent for apptuit.ai

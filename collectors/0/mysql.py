@@ -13,6 +13,13 @@
 # see <http://www.gnu.org/licenses/>.
 """Collector for MySQL."""
 
+# pylint does not understand the mysqldb module and errors out that OperationalError does not exist in MySQLdb
+# See https://github.com/PyCQA/pylint/issues/1138
+# disable the no-member check for now and hope we catch it in IDEA
+#
+# pylint: disable=no-member
+#
+
 import errno
 import os
 import re
@@ -50,7 +57,7 @@ METRIC_MAPPING = yaml_conf.load_collector_configuration('mysql_metrics.yml')
 class DB(object):
   """Represents a MySQL server (as we can monitor more than 1 MySQL)."""
 
-  def __init__(self, db_config_host, db_custom_tags, dbname, db, cursor, version):
+  def __init__(self, db_connection_props, db_config_host, db_custom_tags, dbname, db, cursor, version):
     self.dbname = dbname
     self.db = db
     self.cursor = cursor
@@ -67,6 +74,7 @@ class DB(object):
       self.major = self.medium = 0
 
     self.remotehostconnect = True
+    self.db_connection_props = db_connection_props
     self.db_config_host = db_config_host
     self.db_custom_tags = db_custom_tags
 
@@ -106,7 +114,7 @@ class DB(object):
   def _reconnect(self):
     """Reconnects to this MySQL server."""
     self.close()
-    self.db = mysql_connect(self.sockfile)
+    self.db = mysql_connect(self.db_connection_props)
     self.cursor = self.db.cursor()
 
 
@@ -193,7 +201,7 @@ def find_databases(dbs=None):
 
     if connected:
        version = cursor.fetchone()[0]
-       dbs[db_config_host] = DB(db_config_host=db_config_host,
+       dbs[db_config_host] = DB(db_connection_props=conn_props, db_config_host=db_config_host,
                                 db_custom_tags=mysqlconf.get_db_custom_tags(db_config_host),
                                 dbname=db_name, db=db, cursor=cursor, version=version)
 

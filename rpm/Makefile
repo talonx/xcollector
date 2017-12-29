@@ -30,7 +30,7 @@ git_fullsha1 := \
   `git rev-list --pretty=format:%H HEAD --max-count=1 | sed 1d || echo unknown`
 
 # What / where do we build.
-RPM_TARGET := x86_64
+RPM_TARGET := noarch
 BASENAME := xcollector-$(PACKAGE_VERSION)-$(RPM_REVISION)
 RPM := $(BASENAME).$(RPM_TARGET).rpm
 
@@ -46,6 +46,7 @@ rpm:
             -e 's/@PYTHON_VERSION@/$(PYTHON_VERSION)/' \
             -e "s/@GIT_SHORTSHA1@/$(git_version)/" \
             -e "s/@GIT_FULLSHA1@/$(git_fullsha1)/" \
+            -e 's/@RPM_TARGET@/$(RPM_TARGET)/' \
             -e 's/@RPM_REVISION@/$(RPM_REVISION)/' \
 	    xcollector.spec; \
         } > build/xcollector-t.spec
