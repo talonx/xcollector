@@ -89,7 +89,7 @@ case $1 in
         log_end_msg 0
         exit $rv
         ;;
-    restart)
+    restart|force-reload)
         $0 stop && $0 start
         ;;
 
@@ -99,7 +99,7 @@ case $1 in
         ;;
 
     *)
-        echo "Usage: $0 {start|stop|restart|status}"
+        echo "Usage: $0 {start|stop|restart|force-reload|status}"
         exit 2
         ;;
 esac
