@@ -19,7 +19,7 @@ git_fullsha1 := \
   `git rev-list --pretty=format:%H HEAD --max-count=1 | sed 1d || echo unknown`
 
 # What / where do we build.
-DEB_TARGET := amd64
+DEB_TARGET := all
 BASENAME := xcollector_$(PACKAGE_VERSION)-$(PACKAGE_REVISION)
 DEB := $(BASENAME)_$(DEB_TARGET).deb
 
@@ -58,6 +58,7 @@ deb:
 	set -e; { \
 	  sed \
             -e 's/@PACKAGE_VERSION@/$(PACKAGE_VERSION)/' \
+            -e 's/@DEB_TARGET@/$(DEB_TARGET)/' \
             -e 's/@PYTHON_VERSION@/$(PYTHON_VERSION)/' \
             -e "s/@GIT_SHORTSHA1@/$(git_version)/" \
             -e "s/@GIT_FULLSHA1@/$(git_fullsha1)/" \

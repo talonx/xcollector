@@ -1,7 +1,7 @@
 Package: xcollector
 Version: @PACKAGE_VERSION@-@PACKAGE_REVISION@
 License: LGPLv3+
-Architecture: all
+Architecture: @DEB_TARGET@
 Maintainer: XCollector Maintainers <hello+xcollector@apptuit.ai>
 Installed-Size: 7068
 Depends: adduser, lsb-base, python, python-dev, python-mysqldb, python-yaml, python-requests
