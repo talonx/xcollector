@@ -36,6 +36,7 @@ import time
 import json
 import urllib2
 import base64
+from httplib import HTTPException
 from logging.handlers import RotatingFileHandler
 from Queue import Queue
 from Queue import Empty
@@ -86,7 +87,7 @@ class ReaderQueue(Queue):
         try:
             self.put(value, False)
         except Full:
-            LOG.error("DROPPED LINE: %s", value)
+            LOG.debug("DROPPED LINE: %s", value)
             return False
         return True
 
@@ -304,10 +305,14 @@ class ReaderThread(threading.Thread):
         # while breaking out every once in a while to setup selects
         # on new children.
         while ALIVE:
+            lines_dropped_init = self.lines_dropped
             alc = all_living_collectors()
             for col in alc:
                 for line in col.collect():
                     self.process_line(col, line)
+
+            if self.lines_dropped > lines_dropped_init:
+                LOG.error("DROPPED LINES: %s", self.lines_dropped - lines_dropped_init)
 
             if self.dedupinterval != 0:  # if 0 we do not use dedup
                 now = int(time.time())
@@ -546,10 +551,10 @@ class SenderThread(threading.Thread):
                 if ALIVE:
                     self.send_data()
                 errors = 0  # We managed to do a successful iteration.
-            except (ArithmeticError, EOFError, EnvironmentError, LookupError,
-                    ValueError), e:
+            except (ArithmeticError, EOFError, EnvironmentError, HTTPException, LookupError, ValueError), e:
                 errors += 1
                 if errors > MAX_UNCAUGHT_EXCEPTIONS:
+                    LOG.exception('Too many uncaught exceptions in SenderThread (%s), going to exit', errors)
                     shutdown()
                     raise
                 LOG.exception('Uncaught exception in SenderThread, ignoring')
@@ -788,8 +793,11 @@ class SenderThread(threading.Thread):
             req.add_header("Authorization", "Basic %s"
                            % base64.b64encode("%s:%s" % (self.http_username, self.http_password)))
         req.add_header("Content-Type", "application/json")
+
+        body = json.dumps(metrics)
         try:
-            response = urllib2.urlopen(req, json.dumps(metrics))
+            LOG.debug("Writing body of %d lines / %d bytes" % (len(self.sendq), len(body)))
+            response = urllib2.urlopen(req, body)
             LOG.debug("Received response %s %s", response.getcode(), response.read().rstrip('\n'))
             # clear out the sendq
             self.sendq = []
@@ -799,11 +807,13 @@ class SenderThread(threading.Thread):
             #     print line,
             #     print
         except urllib2.HTTPError, e:
-            LOG.error("Got error %s %s", e, e.read().rstrip('\n'))
-            if "HTTP Error 401" in e:
+            LOG.error("Got error %s %s while sending %d lines / %d bytes", e, e.read().rstrip('\n'),
+                      len(self.sendq), len(body))
+            if e.code == 401:
                 LOG.error("Please check if your access_token is correct in /etc/xcollector/xcollector.yml")
-            # for line in http_error:
-            #   print line,
+            if e.code > 399 and e.code < 500:
+                # clear out the sendq if there is a client error instead of retrying the same bad request forever
+                self.sendq = []
 
 
 def setup_logging(logfile=DEFAULT_LOG, max_bytes=None, backup_count=None):
