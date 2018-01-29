@@ -45,14 +45,14 @@ metrics:
     tags:
       state: used
   proc.stat.processes:
-    standard_name: node.processes
-    description: "Number of processes launched on the node at a given time. (gauge)"
+    standard_name: node.processes.count
+    description: "Number of processes launched on the node since the instance start. (counter)"
   proc.stat.ctxt:
-    standard_name: node.process.context_switches
-    description: "Number of context switches happening on the node at a given time. (gauge)"
+    standard_name: node.process.context_switches.count
+    description: "Number of context switches happening on the node since the instance start. (counter)"
   proc.stat.intr:
-    standard_name: node.process.interrupts
-    description: "Number of interrupts on the node at a given time. (gauge)"
+    standard_name: node.process.interrupts.count
+    description: "Number of interrupts on the node since the instance start. (counter)"
   iostat.disk.util:
     standard_name: node.disk.uptime.percent
     description: >
