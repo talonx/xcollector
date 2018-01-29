@@ -1,0 +1,26 @@
+{
+  "package": {
+    "name": "xcollector",
+    "repo": "debian",
+    "subject": "apptuitai"
+  },
+
+  "version": {
+    "name": "@PACKAGE_VERSION@",
+    "desc": "Version @PACKAGE_VERSION@",
+    "released": "@PACKAGE_DATE@",
+    "vcs_tag": "apptuit-v@PACKAGE_VERSION@"
+  },
+
+  "files":
+  [
+    {"includePattern": "deb/dist/(.*\\.deb)", "uploadPattern": "/pool/x/xcollector/$1",
+      "matrixParams": {
+        "deb_distribution": "jessie,stretch,artful,wheezy,xenial,zesty,trusty",
+        "deb_component": "xcollector,main,xcollector-v0.x",
+        "deb_architecture": "arm64,armhf,i386,mipsel,mips,ppc64el,s390x,amd64,armel,mips64el"
+      }
+    }
+  ],
+  "publish": true
+}

@@ -1,16 +1,46 @@
 language: python
-branches:
-  only:
-    - apptuit-master
+
 python:
   - "2.6"
   - "2.7"
+
 install:
   - sudo apt-get -qq update
   - sudo apt-get install -y rpm
   - pip install pylint ordereddict pyyaml mysqlclient
+
+before_script:
+  - if [[ $TRAVIS_TAG == apptuit-v* ]]; then export PACKAGE_VERSION=${TRAVIS_TAG#apptuit-v}; fi
+  - echo $TRAVIS_TAG
+  - echo $PACKAGE_VERSION
+
 script:
   - ./pylint-runner.py -s
   - ./tests.py
-  - cd rpm; make; cd ..
-  - cd deb; make; cd ..
+  - make -C rpm
+  - make -C deb
+
+
+before_deploy:
+  - PACKAGE_DATE=$(git log -1 --pretty="format:%ad" $TRAVIS_TAG --date=short);
+  - echo $PACKAGE_DATE;
+  - sed -e "s/@PACKAGE_DATE@/$PACKAGE_DATE/" -e "s/@PACKAGE_VERSION@/$PACKAGE_VERSION/" -i deb/bintray-descriptor.json;
+  - cat deb/bintray-descriptor.json;
+  - sed -e "s/@PACKAGE_DATE@/$PACKAGE_DATE/" -e "s/@PACKAGE_VERSION@/$PACKAGE_VERSION/" -i rpm/bintray-descriptor.json;
+  - cat rpm/bintray-descriptor.json;
+
+deploy:
+  - provider: bintray
+    file: "deb/bintray-descriptor.json"
+    user: "$BINTRAY_USER"
+    key: "$BINTRAY_API_KEY"
+    on:
+      tags: true
+      condition: $PACKAGE_VERSION != "" && $TRAVIS_PYTHON_VERSION == "2.7" && $BINTRAY_API_KEY != ""
+  - provider: bintray
+    file: "rpm/bintray-descriptor.json"
+    user: "$BINTRAY_USER"
+    key: "$BINTRAY_API_KEY"
+    on:
+      tags: true
+      condition: $PACKAGE_VERSION != "" && $TRAVIS_PYTHON_VERSION == "2.7" && $BINTRAY_API_KEY != ""
