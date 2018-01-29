@@ -49,7 +49,7 @@ metrics:
     description: "Number of processes launched on the node since the instance start. (counter)"
   proc.stat.ctxt:
     standard_name: node.process.context_switches.count
-    description: "Number of context switches happening on the node since the instance start. (count)"
+    description: "Number of context switches happening on the node since the instance start. (counter)"
   proc.stat.intr:
     standard_name: node.process.interrupts.count
     description: "Number of interrupts on the node since the instance start. (counter)"
