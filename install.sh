@@ -76,11 +76,12 @@ function install_debian () {
     $sudo_cmd apt-get install -y apt-transport-https
     # Only install dirmngr if it's available in the cache
     # it may not be available on Ubuntu <= 14.04 but it's not required there
-    cache_output=`apt-cache search dirmngr`
+    cache_output=$(apt-cache search dirmngr)
     if [ ! -z "$cache_output" ]; then
      print_message "Installing dirmngr\n"
       $sudo_cmd apt-get install -y dirmngr
     fi
+
    print_message "Installing APT source list for XCollector\n"
     $sudo_cmd sh -c "echo 'deb https://dl.bintray.com/apptuitai/debian/ stable main' > /etc/apt/sources.list.d/apptuit.list"
    print_message "Installing GPG keys for XCollector\n"
@@ -149,7 +150,7 @@ Please verify that the local server time is accurate manually.\n"
 
     local server_time=$(date +"%s" -d "$server_header")
     local local_time=$(date +"%s")
-    local time_delta=`expr $local_time - $server_time`
+    local time_delta=$(($local_time - $server_time))
 
     if [ $time_delta -ge 300 -o $time_delta -le -300 ]; then
         print_message "warn" "There is too much time difference between local time and Apptuit.
