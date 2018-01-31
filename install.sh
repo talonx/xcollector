@@ -76,11 +76,12 @@ function install_debian () {
     $sudo_cmd apt-get install -y apt-transport-https
     # Only install dirmngr if it's available in the cache
     # it may not be available on Ubuntu <= 14.04 but it's not required there
-    cache_output=`apt-cache search dirmngr`
+    cache_output=$(apt-cache search dirmngr)
     if [ ! -z "$cache_output" ]; then
      print_message "Installing dirmngr\n"
       $sudo_cmd apt-get install -y dirmngr
     fi
+
    print_message "Installing APT source list for XCollector\n"
     $sudo_cmd sh -c "echo 'deb https://dl.bintray.com/apptuitai/debian/ stable main' > /etc/apt/sources.list.d/apptuit.list"
    print_message "Installing GPG keys for XCollector\n"
@@ -123,12 +124,38 @@ You can start it manually using the following command:\n\n\t$restart_cmd\n\n"
         exit
     fi
 
-   print_message "Starting XCollector\n"
+    print_message "Starting XCollector\n"
     eval $restart_cmd
 }
 
 function post_complete () {
     print_message "success" "Installation completed successfully\n"
+}
+
+function check_time_diff () {
+    print_message "Verifying time offset\n"
+
+    local server_header=""
+    if [ $(command -v curl) ]; then
+        server_header=$(curl -s --head https://www.google.com/humans.txt | grep '^\s*Date:\s*' | sed 's/\s*Date:\s*//g')
+    elif [ $(command -v wget) ]; then
+        server_header=$(wget -S --spider https://www.google.com/humans.txt 2>&1 | grep '^\s*Date:\s*' | sed 's/\s*Date:\s*//g')
+    fi
+
+    if [ "$server_header" == "" ]; then
+        print_message "warn" "Couldn't connect to server to check time difference.
+Please verify that the local server time is accurate manually.\n"
+        return
+    fi
+
+    local server_time=$(date +"%s" -d "$server_header")
+    local local_time=$(date +"%s")
+    local time_delta=$(($local_time - $server_time))
+
+    if [ $time_delta -ge 300 -o $time_delta -le -300 ]; then
+        print_message "warn" "There is too much time difference between local time and Apptuit.
+Metrics might now show up in the correct time window when you query\n"
+    fi
 }
 
 setup_log
@@ -171,7 +198,7 @@ case $OS in
 esac
 
 update_config
-#TODO check time diff with api.apptuit.ai
+check_time_diff
 start_service
 #TODO run a query and verify metrics are posted
 post_complete
