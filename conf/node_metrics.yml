@@ -19,6 +19,16 @@ metrics:
   proc.meminfo.memtotal:
     standard_name: node.memory.total.bytes
     description: "Node total memory available in bytes. (gauge)"
+  proc.meminfo.buffers:
+    standard_name: node.memory.bytes
+    description: "The amount of memory used for file buffers in bytes. (gauge)"
+    tags:
+      state: buffers
+  proc.meminfo.cached:
+    standard_name: node.memory.bytes
+    description: "The amount of memory used as cache memory in bytes. (gauge)"
+    tags:
+      state: cached
   proc.meminfo.memfree:
     standard_name: node.memory.bytes
     description: "Free memory on node in bytes. (gauge)"
