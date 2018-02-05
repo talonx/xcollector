@@ -36,6 +36,7 @@ import time
 import json
 import urllib2
 import base64
+import zlib
 from httplib import HTTPException
 from logging.handlers import RotatingFileHandler
 from Queue import Queue
@@ -427,7 +428,8 @@ class SenderThread(threading.Thread):
 
     def __init__(self, reader, dryrun, hosts, self_report_stats, tags,
                  reconnectinterval=0, http=False, http_username=None,
-                 http_password=None, http_api_path=None, ssl=False, maxtags=8):
+                 http_password=None, http_api_path=None, ssl=False,
+                 compression_threshold=0, maxtags=8):
         """Constructor.
 
         Args:
@@ -452,6 +454,7 @@ class SenderThread(threading.Thread):
         self.http_username = http_username
         self.http_password = http_password
         self.ssl = ssl
+        self.compression_threshold = compression_threshold
         self.hosts = hosts  # A list of (host, port) pairs.
         # Randomize hosts to help even out the load.
         random.shuffle(self.hosts)
@@ -795,6 +798,11 @@ class SenderThread(threading.Thread):
         req.add_header("Content-Type", "application/json")
 
         body = json.dumps(metrics)
+
+        if self.compression_threshold > 0 and len(body) >= self.compression_threshold:
+            req.add_header("Content-Encoding", "deflate")
+            body = zlib.compress(body)
+
         try:
             LOG.debug("Writing body of %d lines / %d bytes" % (len(self.sendq), len(body)))
             response = urllib2.urlopen(req, body)
@@ -950,6 +958,9 @@ def parse_cmdline(argv):
                       help=SUPPRESS_HELP)  # 'Password to use for HTTP Basic Auth when sending the data via HTTP'
     parser.add_option('--ssl', dest='ssl', action='store_true', default=defaults['ssl'],
                       help=SUPPRESS_HELP)  # 'Enable SSL - used in conjunction with http'
+    parser.add_option('--compression-threshold', dest='compression_threshold',
+                      type='int', default=defaults['compression_threshold'],
+                      help=SUPPRESS_HELP)  # 'Minimum body size after which to enable compression
     (options, args) = parser.parse_args(args=argv[1:])
     cmdline_dict = tag_str_list_to_dict(options.tags)
     for key, value in defaults['tags'].iteritems():
@@ -1106,8 +1117,9 @@ def main(argv):
     # and setup the sender to start writing out to the tsd
     sender = SenderThread(reader, options.dryrun, options.hosts,
                           not options.no_tcollector_stats, tags, options.reconnectinterval,
-                          options.http, options.http_username,
-                          options.http_password, options.http_api_path, options.ssl, options.maxtags)
+                          options.http, options.http_username, options.http_password,
+                          options.http_api_path, options.ssl, options.compression_threshold,
+                          options.maxtags)
     sender.start()
     LOG.info('SenderThread startup complete')
 
