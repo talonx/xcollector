@@ -160,8 +160,8 @@ Metrics might now show up in the correct time window when you query\n"
 
 setup_log
 
-if [ -n "$XC_API_KEY" ]; then
-    xc_api_key=$XC_API_KEY
+if [ -n "$XC_ACCESS_TOKEN" ]; then
+    xc_access_token=$XC_ACCESS_TOKEN
 fi
 
 if [ -n "$XC_INSTALL_ONLY" ]; then
@@ -170,8 +170,8 @@ else
     xc_install_only=false
 fi
 
-if [ ! $xc_api_key ]; then
-    print_message "error" "Please set your Apptuit API key in XC_API_KEY environment variable.\n"
+if [ ! $xc_access_token ]; then
+    print_message "error" "Please set your Apptuit access-token in XC_ACCESS_TOKEN environment variable.\n"
     exit 1;
 fi
 
