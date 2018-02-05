@@ -21,7 +21,7 @@ XC_ACCESS_TOKEN=your_access_token bash -c "$(wget -qO- https://git.io/get-xcolle
 ```
 To install using curl, run:
 ```bash
-XC_ACCESS_TOKEN=your_access_token bash -c "$(wget -qO- https://git.io/get-xcollector)"
+XC_ACCESS_TOKEN=your_access_token bash -c "$(curl -Ls  https://git.io/get-xcollector)"
 ```
 Detailed installation instructions are available on the [Installation](https://github.com/ApptuitAI/xcollector/wiki/Installation) Wiki 
 
