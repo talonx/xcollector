@@ -102,8 +102,8 @@ function install_redhat () {
 }
 
 function update_config () {
-   print_message "Updating API key in: /etc/xcollector/xcollector.yml\n"
-    $sudo_cmd sh -c "sed -e 's/access_token:.*/access_token: $xc_api_key/' -i /etc/xcollector/xcollector.yml"
+   print_message "Updating access token in: /etc/xcollector/xcollector.yml\n"
+    $sudo_cmd sh -c "sed -e 's/access_token:.*/access_token: $xc_access_token/' -i /etc/xcollector/xcollector.yml"
 
     #TODO add support for updating tags from environment variables
 
