@@ -7,7 +7,8 @@ python:
 install:
   - sudo apt-get -qq update
   - sudo apt-get install -y rpm
-  - pip install pylint ordereddict pyyaml mysqlclient
+  - if [[ $TRAVIS_PYTHON_VERSION != 2.6 ]]; then pip install pylint; fi
+  - pip install ordereddict pyyaml mysqlclient
 
 before_script:
   - if [[ $TRAVIS_TAG == apptuit-v* ]]; then export PACKAGE_VERSION=${TRAVIS_TAG#apptuit-v}; fi

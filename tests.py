@@ -19,7 +19,7 @@ import unittest
 
 import mocks
 import tcollector
-
+from grok_scraper import munge_metric_name
 
 class CollectorsTests(unittest.TestCase):
 
@@ -103,6 +103,22 @@ class TSDBlacklistingTests(unittest.TestCase):
         self.assertEqual(tsd2, (sender.host, sender.port))
         sender.pick_connection()
         self.assertEqual(tsd1, (sender.host, sender.port))
+
+class GrokScraperTests(unittest.TestCase):
+
+    def test_munge_metric_name(self):
+        self.assertEqual(munge_metric_name("tomcat_request_count"), "tomcat.request.count")
+        self.assertEqual(munge_metric_name("tomcat_request_count_"), "tomcat.request.count.")
+        self.assertEqual(munge_metric_name("_tomcat_request_count"), ".tomcat.request.count")
+        self.assertEqual(munge_metric_name("tomcat__request_count"), "tomcat_request.count")
+        self.assertEqual(munge_metric_name("tomcat___request_count"), "tomcat_.request.count")
+        self.assertEqual(munge_metric_name("tomcat____request_count"), "tomcat__request.count")
+        self.assertEqual(munge_metric_name("tomcat_____request_count"), "tomcat__.request.count")
+        self.assertEqual(munge_metric_name("tomcat______request_count"), "tomcat___request.count")
+        self.assertEqual(munge_metric_name("tomcat_request_count__"), "tomcat.request.count_")
+        self.assertEqual(munge_metric_name("__tomcat_request_count"), "_tomcat.request.count")
+
+
 
 class UDPCollectorTests(unittest.TestCase):
 

@@ -27,7 +27,7 @@ metrics:
           method: '{{.verb}}'
           source: /var/log/tomcat/localhost_access.log
     - type: summary
-      name: tomcat_response_latency
+      name: tomcat_response_duration_seconds
       help: Total number of bytes received or transmitted
       match: '%{TOMCATPATTERNTOUSE}'
       value: '{{.reqtime}}'

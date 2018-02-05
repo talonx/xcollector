@@ -265,8 +265,11 @@ metrics:
     tags:
       status: "waited"
   mysql.innodb_row_lock_time:
-    standard_name: mysql.innodb.row_locks.milliseconds.count
-    description: "he total time spent in acquiring row locks for InnoDB tables, in milliseconds. (counter)"
+    standard_name: mysql.innodb.row_lock.milliseconds.count
+    description: "The total time spent in acquiring row locks for InnoDB tables, in milliseconds. (counter)"
+  mysql.innodb_row_lock_waits:
+    standard_name: mysql.innodb.row_lock.wait.count
+    description: "The number of times operations on InnoDB tables had to wait for a row lock. (counter)"
   mysql.innodb_buffer_pool_read_requests:
     standard_name: mysql.innodb.buffer_pool.count
     description: "The number of logical read requests. (counter)"
@@ -283,36 +286,34 @@ metrics:
     tags:
       state: "write_req"
   mysql.innodb_buffer_pool_pages_flushed:
-    standard_name: mysql.innodb.buffer_pool.pages
+    standard_name: mysql.innodb.buffer_pool.pages.flush.count
     description: "The number of requests to flush pages from the InnoDB buffer pool. (counter)"
-    tags:
-      state: "page_flush"
   mysql.innodb_buffer_pool_pages_free:
     standard_name: mysql.innodb.buffer_pool.pages
-    description: "The number of free pages in the InnoDB buffer pool. (counter)"
+    description: "The number of free pages in the InnoDB buffer pool. (gauge)"
     tags:
       state: "free"
   mysql.innodb_buffer_pool_pages_dirty:
     standard_name: mysql.innodb.buffer_pool.pages
-    description: "The current number of dirty pages in the InnoDB buffer pool. (counter)"
+    description: "The current number of dirty pages in the InnoDB buffer pool. (gauge)"
     tags:
       state: "dirty"
   mysql.innodb_buffer_pool_pages_data:
     standard_name: mysql.innodb.buffer_pool.pages
-    description: "The number of pages in the InnoDB buffer pool containing data. The number includes both dirty and clean pages. (counter)"
+    description: "The number of pages in the InnoDB buffer pool containing data. The number includes both dirty and clean pages. (gauge)"
     tags:
       state: "data"
   mysql.innodb_buffer_pool_pages_misc:
     standard_name: mysql.innodb.buffer_pool.pages
-    description: "The number of pages in the InnoDB buffer pool that are busy because they have been allocated for administrative overhead, such as row locks or the adaptive hash index. (counter)"
+    description: "The number of pages in the InnoDB buffer pool that are busy because they have been allocated for administrative overhead, such as row locks or the adaptive hash index. (gauge)"
     tags:
       state: "misc"
   mysql.innodb_buffer_pool_pages_total:
     standard_name: mysql.innodb.buffer_pool.pages.total
-    description: "The total size of the InnoDB buffer pool, in pages. (counter)"
+    description: "The total size of the InnoDB buffer pool, in pages. (gauge)"
   mysql.innodb_page_size:
     standard_name: mysql.innodb.page_size.bytes
-    description: "InnoDB page size (default 16KB). Many values are counted in pages; the page size enables them to be easily converted to bytes. (counter)"
+    description: "InnoDB page size (default 16KB). Many values are counted in pages; the page size enables them to be easily converted to bytes. (gauge)"
   mysql.innodb_buffer_pool_wait_free:
     standard_name: mysql.innodb.buffer_pool.wait_free.count
     description: "Number of times innodb had to free up pages by flushing dirty pages. (counter)"

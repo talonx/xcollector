@@ -26,21 +26,21 @@ metrics:
           method: '{{.verb}}'
           source: /var/log/nginx/access.log
     - type: gauge
-      name: nginx_network_traffic::_direction_in::_
+      name: nginx_network_bytes_count::_direction_in::_
       help: Total number of bytes received or transmitted
       match: '%{NGINXPATTERNTOUSE}'
       value: '{{.rxbytes}}'
       labels:
           source: /var/log/nginx/access.log
     - type: gauge
-      name: nginx_network_traffic::_direction_out::_
+      name: nginx_network_bytes_count::_direction_out::_
       help: Total number of bytes received or transmitted
       match: '%{NGINXPATTERNTOUSE}'
       value: '{{.txbytes}}'
       labels:
           source: /var/log/nginx/access.log
     - type: summary
-      name: nginx_response_latency
+      name: nginx_response_duration_seconds
       help: Full request time, starting when NGINX reads the first byte from the client and ending when NGINX sends the last byte of the response body
       match: '%{NGINXPATTERNTOUSE}'
       value: '{{.reqtime}}'
@@ -50,7 +50,7 @@ metrics:
           status: '{{.response}}'
           source: /var/log/nginx/access.log
     - type: summary
-      name: nginx_upstream_response_latency
+      name: nginx_response_upstream_duration_seconds
       help: Time between establishing a connection to an upstream server and receiving the last byte of the response body
       match: '%{NGINXPATTERNTOUSE}'
       value: '{{.upstime}}'
