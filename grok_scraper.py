@@ -17,8 +17,6 @@ import traceback
 from StringIO import StringIO
 
 from collectors.etc import grok_scraper_conf
-from collectors.etc import metric_naming
-from collectors.etc import yaml_conf
 
 COLLECTION_INTERVAL_SECONDS = 15
 MATCHING_FILE_POLLING_INTERVAL_SECONDS = 1
@@ -28,8 +26,6 @@ yconfig = {}
 file_being_groked = None
 processes = []
 urls_vs_patterns = {}
-
-METRIC_MAPPING = yaml_conf.load_collector_configuration('grok_metrics.yml')
 
 logging.basicConfig(stream=sys.stderr)
 LOG = logging.getLogger('grok_scraper')
@@ -237,6 +233,14 @@ def find_latest_file(path, file_name_pattern):
     return latest_file
 
 
+def munge_metric_name(metric):
+    new_name = re.sub(r'__', '\0', metric)
+    found_double_underscore = (len(new_name) < len(metric))
+    new_name = re.sub(r'_', ".", new_name)
+    if found_double_underscore:
+        new_name = re.sub(r'\0', "_", new_name)
+    return new_name
+
 def main():
     signal.signal(signal.SIGTERM, die)
     exporter_dir = grok_scraper_conf.get_grok_exporter_dir()
@@ -266,7 +270,7 @@ def fetch_metrics():
             return "{0:.3f}".format(float_value)
 
     def print_metric(metric_name, timestamp, value, tags):
-        print("%s %s %s %s" % (metric_name, timestamp, format_metric_value(value), tags))
+        print("%s %s %s %s" % (munge_metric_name(metric_name), timestamp, format_metric_value(value), tags))
 
     for (url, patterns) in urls_vs_patterns.iteritems():
         try:
@@ -297,14 +301,8 @@ def fetch_metrics():
                             else:
                                 tags += ' ' + extratag.replace('_', '=')
                         print_metric(finalmetricname, timestamp, g[2], tags)
-                        metric_naming.print_if_apptuit_standard_metric(finalmetricname, METRIC_MAPPING, timestamp,
-                                                                       format_metric_value(g[2]), tags=None,
-                                                                       tags_str=tags)
                     else:
                         print_metric(g[0], timestamp, g[2], tags)
-                        metric_naming.print_if_apptuit_standard_metric(g[0], METRIC_MAPPING, timestamp,
-                                                                       format_metric_value(g[2]), tags=None,
-                                                                       tags_str=tags)
         except:
             print("Unexpected error:", sys.exc_info()[0])
             traceback.print_exc()
