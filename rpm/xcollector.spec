@@ -96,7 +96,6 @@ mkdir -p %{buildroot}/%{py2_sitelib}/
 %{tcollectordir}/conf/grok_nginx.yml %config
 %{tcollectordir}/conf/grok_tomcat.yml %config
 %{tcollectordir}/conf/mysql.yml %config
-%{tcollectordir}/conf/grok_metrics.yml %config
 %{tcollectordir}/conf/memcached_metrics.yml %config
 %{tcollectordir}/conf/mysql_metrics.yml %config
 %{tcollectordir}/conf/node_metrics.yml %config
