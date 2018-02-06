@@ -9,9 +9,6 @@ It is a fork of [tcollector](https://github.com/OpenTSDB/tcollector) with suppor
 * RPM and Debian packages for easy installation
 * Simple YML based configuration
 
-### Downloads
-Download the latest release from the [releases page](https://github.com/ApptuitAI/xcollector/releases).
-
 ### Installation
 XCollector is available via debian & yum repositories
 
