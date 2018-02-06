@@ -72,6 +72,8 @@ def get_defaults():
     defaults["cdir"] = "/usr/local/xcollector/collectors"
     if 'ssl' not in defaults:
         defaults['ssl'] = True
+    if 'compression_threshold' not in defaults:
+        defaults['compression_threshold'] = 6 * 1024
     defaults['stdin'] = False
     if 'daemonize' not in defaults:
         defaults['daemonize'] = False
