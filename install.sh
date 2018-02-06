@@ -71,41 +71,44 @@ function get_os () {
 }
 
 function install_debian () {
-   print_message "Installing apt-transport-https\n"
+    print_message "Installing apt-transport-https\n"
     $sudo_cmd apt-get update || printf "'apt-get update' failed, dependencies might not be updated to latest version.\n"
     $sudo_cmd apt-get install -y apt-transport-https
     # Only install dirmngr if it's available in the cache
     # it may not be available on Ubuntu <= 14.04 but it's not required there
     cache_output=$(apt-cache search dirmngr)
     if [ ! -z "$cache_output" ]; then
-     print_message "Installing dirmngr\n"
-      $sudo_cmd apt-get install -y dirmngr
+        print_message "Installing dirmngr\n"
+        $sudo_cmd apt-get install -y dirmngr
     fi
 
-   print_message "Installing APT source list for XCollector\n"
+    print_message "Installing APT source list for XCollector\n"
     $sudo_cmd sh -c "echo 'deb https://dl.bintray.com/apptuitai/debian/ stable main' > /etc/apt/sources.list.d/apptuit.list"
-   print_message "Installing GPG keys for XCollector\n"
+    print_message "Installing GPG keys for XCollector\n"
     $sudo_cmd apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
 
-   print_message "Updating XCollector repo\n"
+    print_message "Updating XCollector repo\n"
     $sudo_cmd apt-get update -o Dir::Etc::sourcelist="sources.list.d/apptuit.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
-   print_message "Installing XCollector\n"
+    print_message "Installing XCollector\n"
     $sudo_cmd apt-get install -y --force-yes xcollector
 }
 
 function install_redhat () {
-   print_message "Installing YUM sources for Apptuit\n"
+    print_message "Installing YUM sources for Apptuit\n"
     $sudo_cmd sh -c "echo -e '[apptuit]\nname=Apptuit.AI\nbaseurl=https://dl.bintray.com/apptuitai/rpm\nenabled=1\ngpgcheck=0\nrepo_gpgcheck=0\n' > /etc/yum.repos.d/apptuit.repo"
 
-   print_message "Installing XCollector\n"
+    print_message "Installing XCollector\n"
     $sudo_cmd yum -y install xcollector
 }
 
 function update_config () {
-   print_message "Updating access token in: /etc/xcollector/xcollector.yml\n"
+    print_message "Updating access token in: /etc/xcollector/xcollector.yml\n"
     $sudo_cmd sh -c "sed -e 's/access_token:.*/access_token: $xc_access_token/' -i /etc/xcollector/xcollector.yml"
 
-    #TODO add support for updating tags from environment variables
+    if [ -n "$xc_global_tags" ]; then
+        print_message "Updating tags in: /etc/xcollector/xcollector.yml\n"
+        $sudo_cmd sh -c "/usr/local/xcollector/xcollector.py --set-option-tags $xc_global_tags"
+    fi
 
 }
 
@@ -162,6 +165,11 @@ setup_log
 
 if [ -n "$XC_ACCESS_TOKEN" ]; then
     xc_access_token=$XC_ACCESS_TOKEN
+fi
+
+
+if [ -n "$XC_GLOBAL_TAGS" ]; then
+    xc_global_tags=$XC_GLOBAL_TAGS
 fi
 
 if [ -n "$XC_INSTALL_ONLY" ]; then
