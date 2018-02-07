@@ -12,14 +12,16 @@ It is a fork of [tcollector](https://github.com/OpenTSDB/tcollector) with suppor
 ### Installation
 XCollector is available via debian & yum repositories
 
-To install using wget, run:
+To install using the installation script and `wget`, run (**replace PASTE_ACCESS_TOKEN_HERE with your Apptuit API access token**):
 ```bash
-XC_ACCESS_TOKEN=your_access_token bash -c "$(wget -qO- https://git.io/get-xcollector)"
+XC_ACCESS_TOKEN=PASTE_ACCESS_TOKEN_HERE bash -c "$(wget -qO- https://git.io/get-xcollector)"
 ```
-To install using curl, run:
+
+Alternately, to install using the installation script and `curl`, run (**replace PASTE_ACCESS_TOKEN_HERE with your Apptuit API access token**):
 ```bash
-XC_ACCESS_TOKEN=your_access_token bash -c "$(curl -Ls  https://git.io/get-xcollector)"
+XC_ACCESS_TOKEN=PASTE_ACCESS_TOKEN_HERE bash -c "$(curl -Ls  https://git.io/get-xcollector)"
 ```
+
 Detailed installation instructions are available on the [Installation](https://github.com/ApptuitAI/xcollector/wiki/Installation) Wiki 
 
 ### Development
