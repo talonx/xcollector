@@ -44,6 +44,9 @@ from Queue import Empty
 from Queue import Full
 from optparse import OptionParser, SUPPRESS_HELP
 
+from collectors.etc import yaml_conf
+
+
 # global variables.
 COLLECTORS = {}
 GENERATION = 0
@@ -961,6 +964,8 @@ def parse_cmdline(argv):
     parser.add_option('--compression-threshold', dest='compression_threshold',
                       type='int', default=defaults['compression_threshold'],
                       help=SUPPRESS_HELP)  # 'Minimum body size after which to enable compression
+    parser.add_option('--set-option-tags', dest='set_opt_global_tags',
+                      help=SUPPRESS_HELP)  # 'Username to use for HTTP Basic Auth when sending the data via HTTP'
     (options, args) = parser.parse_args(args=argv[1:])
     cmdline_dict = tag_str_list_to_dict(options.tags)
     for key, value in defaults['tags'].iteritems():
@@ -1041,6 +1046,13 @@ def main(argv):
     except:
         sys.stderr.write("Unexpected error: %s" % sys.exc_info()[0])
         return 1
+
+    if options.set_opt_global_tags:
+        updated = yaml_conf.set_global_tags(options.set_opt_global_tags, overwrite=True)
+        if updated:
+            return 0
+        else:
+            return 4
 
     if not check_file_permissions(options.logfile or DEFAULT_LOG) or not check_file_permissions(options.pidfile):
         return 2
