@@ -44,7 +44,14 @@ import json
 import os
 import sys
 import time
-import urllib.request
+try:
+    from urllib.request import urlopen
+    from urllib.error import HTTPError
+    from http.client import HTTPException
+except ImportError:
+    from urllib2 import urlopen
+    from urllib2 import HTTPError
+    from httplib import HTTPException
 
 from collectors.lib import utils
 
@@ -92,7 +99,7 @@ def main():
     while True:
         ts = int(time.time())
 
-        req = urllib.request.urlopen("http://localhost:8098/stats")
+        req = urlopen("http://localhost:8098/stats")
         if req is not None:
             obj = json.loads(req.read())
             for key in obj:

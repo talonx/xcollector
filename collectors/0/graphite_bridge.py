@@ -16,10 +16,9 @@
 import sys
 import threading
 
-is_py2 = sys.version[0] == '2'
-if is_py2:
+try:
     import SocketServer as socketserver
-else:
+except ImportError:
     import socketserver as socketserver
 
 from collectors.lib import utils

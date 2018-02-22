@@ -12,12 +12,9 @@
 # of the GNU Lesser General Public License along with this program.  If not,
 # see <http://www.gnu.org/licenses/>.
 
-import sys
-
-is_py2 = sys.version[0] == '2'
-if is_py2:
+try:
     import httplib as httplib
-else:
+except ImportError:
     import http.client as httplib
 
 try:

@@ -8,10 +8,9 @@ import re
 import exceptions
 import threading
 
-is_py2 = sys.version[0] == '2'
-if is_py2:
+try:
     import Queue as queue
-else:
+except ImportError:
     import queue as queue
 
 from time import mktime

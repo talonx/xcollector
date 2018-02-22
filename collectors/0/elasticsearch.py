@@ -22,10 +22,9 @@ import threading
 import time
 import re
 
-is_py2 = sys.version[0] == '2'
-if is_py2:
+try:
     import httplib as httplib
-else:
+except ImportError:
     import http.client as httplib
 
 try:
