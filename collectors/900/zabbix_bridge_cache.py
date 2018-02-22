@@ -21,10 +21,11 @@ import re
 import sqlite3
 import sys
 import time
+
 try:
     import pymysql
 except ImportError:
-    pymysql = None # This is handled gracefully in main()
+    pymysql = None  # This is handled gracefully in main()
 
 from collectors.etc import zabbix_bridge_conf
 from collectors.lib import utils
@@ -50,20 +51,20 @@ def main():
     else:
         utils.err("Zabbix bridge SQLite DB exists @ %s" % (db_filename))
 
-
     dbzbx = pymysql.connect(**settings['mysql'])
     zbxcur = dbzbx.cursor()
-    zbxcur.execute("SELECT i.itemid, i.key_, h.host, h2.host AS proxy FROM items i JOIN hosts h ON i.hostid=h.hostid LEFT JOIN hosts h2 ON h2.hostid=h.proxy_hostid")
+    zbxcur.execute(
+        "SELECT i.itemid, i.key_, h.host, h2.host AS proxy FROM items i JOIN hosts h ON i.hostid=h.hostid LEFT JOIN hosts h2 ON h2.hostid=h.proxy_hostid")
     # Translation of item key_
     # Note: http://opentsdb.net/docs/build/html/user_guide/writing.html#metrics-and-tags
     disallow = re.compile(settings['disallow'])
     cachecur = dbcache.cursor()
     print('tcollector.zabbix_bridge.deleterows %d %s' %
-     (int(time.time()), cachecur.execute('DELETE FROM zabbix_cache').rowcount))
+           (int(time.time()), cachecur.execute('DELETE FROM zabbix_cache').rowcount))
     rowcount = 0
     for row in zbxcur:
         cachecur.execute('''INSERT INTO zabbix_cache(id, key, host, proxy) VALUES (?,?,?,?)''',
-         (row[0], re.sub(disallow, '_', row[1]), re.sub(disallow, '_', row[2]), row[3]))
+                         (row[0], re.sub(disallow, '_', row[1]), re.sub(disallow, '_', row[2]), row[3]))
         rowcount += 1
 
     print('tcollector.zabbix_bridge.rows %d %s' % (int(time.time()), rowcount))

@@ -6,8 +6,7 @@ import sys
 import time
 from datetime import datetime
 
-import ssllabs
-
+from collectors.lib import ssllabs
 from collectors.etc import check_certs_conf
 
 logging.basicConfig(stream=sys.stdout)
@@ -1000,7 +999,7 @@ def main():
         try:
             name_vs_domains = check_certs_conf.get_config()
             timestamp = int(time.time())
-            for name, domain in name_vs_domains.iteritems():
+            for name, domain in name_vs_domains.items():
                 assessment = ssllabs.SSLLabsAssessment(host=domain)
                 info = assessment.analyze(ignore_mismatch='off', from_cache='off', publish='off')
                 j = json.loads(json.dumps(info))
@@ -1010,7 +1009,7 @@ def main():
                 # print endpoint['gradeTrustIgnored']
                 # print endpoint['hasWarnings']
                 # print endpoint['ipAddress']
-                expiry_time = long(endpoint['details']['cert']['notAfter'])
+                expiry_time = int(endpoint['details']['cert']['notAfter'])
 
                 expiry_time_sec = expiry_time / 1000
                 nowtime = datetime.utcnow()

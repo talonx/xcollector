@@ -14,6 +14,8 @@
 
 """Common utility functions shared for Python collectors"""
 
+from __future__ import print_function
+
 import os
 import stat
 import pwd
@@ -42,7 +44,8 @@ def is_sockfile(path):
     """Returns whether or not the given path is a socket file."""
     try:
         s = os.stat(path)
-    except OSError, (no, e):
+    except OSError as os_error:
+        (no, e) = os_error.args
         if no == errno.ENOENT:
             return False
         err("warning: couldn't stat(%r): %s" % (path, e))
@@ -50,9 +53,9 @@ def is_sockfile(path):
     return s.st_mode & stat.S_IFSOCK == stat.S_IFSOCK
 
 
-def err(msg):
-    print >> sys.stderr, msg
+def err(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 
 
 def is_numeric(value):
-    return isinstance(value, (int, long, float))
+    return isinstance(value, (int, float))

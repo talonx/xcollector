@@ -79,16 +79,16 @@ COLLECTION_INTERVAL = 60  # seconds
 
 # Docs come from the Linux kernel's Documentation/iostats.txt
 FIELDS_DISK = (
-    "read_requests",        # Total number of reads completed successfully.
-    "read_merged",          # Adjacent read requests merged in a single req.
-    "read_sectors",         # Total number of sectors read successfully.
-    "msec_read",            # Total number of ms spent by all reads.
-    "write_requests",       # total number of writes completed successfully.
-    "write_merged",         # Adjacent write requests merged in a single req.
-    "write_sectors",        # total number of sectors written successfully.
-    "msec_write",           # Total number of ms spent by all writes.
-    "ios_in_progress",      # Number of actual I/O requests currently in flight.
-    "msec_total",           # Amount of time during which ios_in_progress >= 1.
+    "read_requests",  # Total number of reads completed successfully.
+    "read_merged",  # Adjacent read requests merged in a single req.
+    "read_sectors",  # Total number of sectors read successfully.
+    "msec_read",  # Total number of ms spent by all reads.
+    "write_requests",  # total number of writes completed successfully.
+    "write_merged",  # Adjacent write requests merged in a single req.
+    "write_sectors",  # total number of sectors written successfully.
+    "msec_write",  # Total number of ms spent by all writes.
+    "ios_in_progress",  # Number of actual I/O requests currently in flight.
+    "msec_total",  # Amount of time during which ios_in_progress >= 1.
     "msec_weighted_total",  # Measure of recent I/O completion time and backlog.
 )
 
@@ -101,7 +101,9 @@ FIELDS_PART = (
 
 METRIC_MAPPING = yaml_conf.load_collector_configuration('node_metrics.yml')
 
-prev_times = (0,0)
+prev_times = (0, 0)
+
+
 def read_uptime():
     global prev_times
     try:
@@ -109,7 +111,7 @@ def read_uptime():
         line = f_uptime.readline()
 
         curr_times = line.split(None)
-        delta_times = (float(curr_times[0]) - float(prev_times[0]),  float(curr_times[1]) - float(prev_times[1]))
+        delta_times = (float(curr_times[0]) - float(prev_times[0]), float(curr_times[1]) - float(prev_times[1]))
         prev_times = curr_times
         return delta_times
     finally:
@@ -184,14 +186,14 @@ def main():
                 # full stats line
                 for i in range(11):
                     print("%s%s %d %s dev=%s"
-                          % (metric, FIELDS_DISK[i], ts, values[i+3], device))
+                           % (metric, FIELDS_DISK[i], ts, values[i + 3], device))
                     metric_naming.print_if_apptuit_standard_metric(metric + FIELDS_DISK[i], METRIC_MAPPING, ts,
-                                                                   values[i+3], tags={"dev": device}, tags_str=None)
+                                                                   values[i + 3], tags={"dev": device}, tags_str=None)
 
                 ret = is_device(device, 0)
                 # if a device or a partition, calculate the svctm/await/util
                 if ret:
-                    stats = dict(zip(FIELDS_DISK, values[3:]))
+                    stats = dict(list(zip(FIELDS_DISK, values[3:])))
                     if not device in prev_stats:
                         prev_stats[device] = init_stats
                     rd_ios = float(stats.get("read_requests"))
@@ -201,7 +203,8 @@ def main():
                     prev_wr_ios = float(prev_stats[device].get("write_requests"))
                     prev_nr_ios = prev_rd_ios + prev_wr_ios
                     tput = ((nr_ios - prev_nr_ios) * float(HZ) / float(itv))
-                    util = ((float(stats.get("msec_total")) - float(prev_stats[device].get("msec_total"))) * float(HZ) / float(itv))
+                    util = ((float(stats.get("msec_total")) - float(prev_stats[device].get("msec_total"))) * float(
+                        HZ) / float(itv))
                     svctm = 0.0
                     await = 0.0
                     r_await = 0.0
@@ -215,23 +218,24 @@ def main():
                     prev_rd_ticks = prev_stats[device].get("msec_read")
                     prev_wr_ticks = prev_stats[device].get("msec_write")
                     if rd_ios != prev_rd_ios:
-                        r_await = (float(rd_ticks) - float(prev_rd_ticks) ) / float(rd_ios - prev_rd_ios)
+                        r_await = (float(rd_ticks) - float(prev_rd_ticks)) / float(rd_ios - prev_rd_ios)
                     if wr_ios != prev_wr_ios:
-                        w_await = (float(wr_ticks) - float(prev_wr_ticks) ) / float(wr_ios - prev_wr_ios)
+                        w_await = (float(wr_ticks) - float(prev_wr_ticks)) / float(wr_ios - prev_wr_ios)
                     if nr_ios != prev_nr_ios:
-                        await = (float(rd_ticks) + float(wr_ticks) - float(prev_rd_ticks) - float(prev_wr_ticks)) / float(nr_ios - prev_nr_ios)
+                        await = (float(rd_ticks) + float(wr_ticks) - float(prev_rd_ticks) - float(
+                            prev_wr_ticks)) / float(nr_ios - prev_nr_ios)
                     print("%s%s %d %.2f dev=%s"
-                          % (metric, "svctm", ts, svctm, device))
+                           % (metric, "svctm", ts, svctm, device))
                     print("%s%s %d %.2f dev=%s"
-                          % (metric, "r_await", ts, r_await, device))
+                           % (metric, "r_await", ts, r_await, device))
                     print("%s%s %d %.2f dev=%s"
-                          % (metric, "w_await", ts, w_await, device))
+                           % (metric, "w_await", ts, w_await, device))
                     print("%s%s %d %.2f dev=%s"
-                          % (metric, "await", ts, await, device))
+                           % (metric, "await", ts, await, device))
                     util_val = float(util / 1000.0)
                     print("%s%s %d %.2f dev=%s"
-                          % (metric, "util", ts, util_val, device))
-                    metric_naming.print_if_apptuit_standard_metric(metric+"util", METRIC_MAPPING, ts,
+                           % (metric, "util", ts, util_val, device))
+                    metric_naming.print_if_apptuit_standard_metric(metric + "util", METRIC_MAPPING, ts,
                                                                    format(round(util_val, 2)), tags={"dev": device},
                                                                    tags_str=None)
 
@@ -241,9 +245,9 @@ def main():
                 # partial stats line
                 for i in range(4):
                     print("%s%s %d %s dev=%s"
-                          % (metric, FIELDS_PART[i], ts, values[i+3], device))
+                           % (metric, FIELDS_PART[i], ts, values[i + 3], device))
             else:
-                print >> sys.stderr, "Cannot parse /proc/diskstats line: ", line
+                utils.err("Cannot parse /proc/diskstats line: ", line)
                 continue
 
         sys.stdout.flush()

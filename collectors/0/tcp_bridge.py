@@ -18,12 +18,16 @@ import os
 import sys
 import time
 from collectors.lib import utils
-from thread import *
+
+try:
+    from _thread import start_new_thread
+except ImportError:
+    from thread import start_new_thread
 
 try:
     from collectors.etc import tcp_bridge_conf
 except ImportError:
-    print >> sys.stderr, 'unable to import tcp_bridge_conf'
+    utils.err('unable to import tcp_bridge_conf')
     tcp_bridge_conf = None
 
 HOST = '127.0.0.1'
@@ -40,21 +44,22 @@ m_ptime = 0
 # buffered stdout seems to break metrics
 out = os.fdopen(sys.stdout.fileno(), 'w', 0)
 
+
 def main():
     if not (tcp_bridge_conf and tcp_bridge_conf.enabled()):
-        print >> sys.stderr, 'not enabled, or tcp_bridge_conf unavilable'
+        utils.err('not enabled, or tcp_bridge_conf unavilable')
         sys.exit(13)
     utils.drop_privileges()
 
     def printm(string, time, value):
-        out.write(m_namespace+string+' '+str(time)+' '+str(value)+'\n')
+        out.write(m_namespace + string + ' ' + str(time) + ' ' + str(value) + '\n')
 
     def printmetrics():
         global m_delay
         global m_last
 
         ts = int(time.time())
-        if ts > m_last+m_delay:
+        if ts > m_last + m_delay:
             printm('lines_read', ts, m_lines)
             printm('connections_processed', ts, m_connections)
             printm('processing_time', ts, m_ptime)
@@ -103,7 +108,7 @@ def main():
         sock.bind((HOST, PORT))
         sock.listen(1)
 
-    except socket.error, msg:
+    except socket.error as msg:
         utils.err('could not open socket: %s' % msg)
         sys.exit(1)
 
@@ -123,6 +128,7 @@ def main():
 
     finally:
         sock.close()
+
 
 if __name__ == "__main__":
     main()

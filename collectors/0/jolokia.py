@@ -23,6 +23,7 @@
 import time
 import sys
 import copy
+
 try:
     import simplejson as json
 except ImportError:
@@ -98,25 +99,25 @@ class JolokiaCollector():
         """ Take a dict of attributes and print out numerical metric strings
         Recurse if necessary
         """
-        for k, v in d.iteritems():
+        for k, v in d.items():
             # Tack on the name of the attribute
             attribute, more_tags = self.parse_attribute(k.lower(), not_tags)
             metric_name = '.'.join([metric_prefix, attribute])
             my_tags = tags + more_tags
             # If numerical
             if utils.is_numeric(v):
-                print "%s %d %s %s" % (metric_name, timestamp, str(v),
-                                        ' '.join(my_tags))
+                print("%s %d %s %s" % (metric_name, timestamp, str(v),
+                                       ' '.join(my_tags)))
             # If a bool, True=1, False=0
             elif type(v) is bool:
-                print "%s %d %s %s" % (metric_name, timestamp, str(int(v)),
-                                        ' '.join(my_tags))
+                print("%s %d %s %s" % (metric_name, timestamp, str(int(v)),
+                                       ' '.join(my_tags)))
             # Or a dict of more attributes, call ourselves again
             elif type(v) is dict:
                 self.print_metrics(v, metric_name, timestamp, my_tags, not_tags)
             else:
-                #lists, strings, etc
-                #print '# ', type(v), metric_name, str(v)
+                # lists, strings, etc
+                # print '# ', type(v), metric_name, str(v)
                 pass
 
     def process_data(self):
@@ -136,7 +137,7 @@ class JolokiaCollector():
                     if monitor['mbean'] == mbean['request']['mbean']:
                         if mbean['status'] == 200:
                             self.print_metrics(mbean['value'], monitor['metric'], mbean['timestamp'],
-                                                   monitor['taglist'], monitor['not_tags'])
+                                               monitor['taglist'], monitor['not_tags'])
                             break
                         else:
                             utils.err("error: mbean not found - " + monitor['mbean'])
@@ -211,6 +212,7 @@ def main():
         except KeyboardInterrupt:
             break
     # End while True
+
 
 if __name__ == "__main__":
     main()

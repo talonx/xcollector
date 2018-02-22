@@ -34,18 +34,24 @@ import sys
 import threading
 import time
 import json
-import urllib2
 import base64
 import zlib
-from httplib import HTTPException
+
+try:
+    from urllib.request import urlopen, Request
+    from urllib.error import HTTPError
+    from http.client import HTTPException
+    from queue import Queue, Empty, Full
+except ImportError:
+    from urllib2 import urlopen, Request
+    from urllib2 import HTTPError
+    from httplib import HTTPException
+    from Queue import Queue, Empty, Full
+
 from logging.handlers import RotatingFileHandler
-from Queue import Queue
-from Queue import Empty
-from Queue import Full
 from optparse import OptionParser, SUPPRESS_HELP
 
 from collectors.etc import yaml_conf
-
 
 # global variables.
 COLLECTORS = {}
@@ -147,10 +153,11 @@ class Collector(object):
             if out:
                 LOG.debug('reading %s got %d bytes on stderr',
                           self.name, len(out))
+                out = out.decode("utf-8")
                 for line in out.splitlines():
                     LOG.warning('%s: %s', self.name, line)
-        except IOError, (err, msg):
-            if err != errno.EAGAIN:
+        except IOError as io_err:
+            if io_err.errno != errno.EAGAIN:
                 raise
         except:
             LOG.exception('uncaught exception in stderr read')
@@ -159,12 +166,16 @@ class Collector(object):
         # out a bunch of data points at one time and we get some weird sized
         # chunk.  This read call is non-blocking.
         try:
-            self.buffer += self.proc.stdout.read()
+            data = self.proc.stdout.read()
+            if self.buffer is None:
+                self.buffer = data
+            elif data is not None:
+                self.buffer += data.decode("utf-8")
             if len(self.buffer):
                 LOG.debug('reading %s, buffer now %d bytes',
                           self.name, len(self.buffer))
-        except IOError, (err, msg):
-            if err != errno.EAGAIN:
+        except IOError as io_err:
+            if io_err.errno != errno.EAGAIN:
                 raise
         except AttributeError:
             # sometimes the process goes away in another thread and we don't
@@ -226,7 +237,7 @@ class Collector(object):
           cut_off: A UNIX timestamp.  Any value that's older than this will be
             removed from the cache.
         """
-        for key in self.values.keys():
+        for key in list(self.values.keys()):
             time = self.values[key][3]
             if time < cut_off:
                 del self.values[key]
@@ -479,7 +490,7 @@ class SenderThread(threading.Thread):
         # isn't in the blacklist, or until we run out of hosts (i.e. they
         # are all blacklisted, which typically happens when we lost our
         # connectivity to the outside world).
-        for self.current_tsd in xrange(self.current_tsd + 1, len(self.hosts)):
+        for self.current_tsd in range(self.current_tsd + 1, len(self.hosts)):
             hostport = self.hosts[self.current_tsd]
             if hostport not in self.blacklisted_hosts:
                 break
@@ -557,7 +568,7 @@ class SenderThread(threading.Thread):
                 if ALIVE:
                     self.send_data()
                 errors = 0  # We managed to do a successful iteration.
-            except (ArithmeticError, EOFError, EnvironmentError, HTTPException, LookupError, ValueError), e:
+            except (ArithmeticError, EOFError, EnvironmentError, HTTPException, LookupError, ValueError) as e:
                 errors += 1
                 if errors > MAX_UNCAUGHT_EXCEPTIONS:
                     LOG.exception('Too many uncaught exceptions in SenderThread (%s), going to exit', errors)
@@ -590,7 +601,7 @@ class SenderThread(threading.Thread):
             # closing the connection and indicating that we need to reconnect.
             try:
                 self.tsd.close()
-            except socket.error, msg:
+            except socket.error as msg:
                 pass  # not handling that
             self.time_reconnect = time.time()
             return False
@@ -600,7 +611,7 @@ class SenderThread(threading.Thread):
         LOG.debug('verifying our TSD connection is alive')
         try:
             self.tsd.sendall('version\n')
-        except socket.error, msg:
+        except socket.error as msg:
             self.tsd = None
             self.blacklist_connection()
             return False
@@ -612,7 +623,7 @@ class SenderThread(threading.Thread):
             # connection
             try:
                 buf = self.tsd.recv(bufsize)
-            except socket.error, msg:
+            except socket.error as msg:
                 self.tsd = None
                 self.blacklist_connection()
                 return False
@@ -666,9 +677,9 @@ class SenderThread(threading.Thread):
                 addresses = socket.getaddrinfo(self.host, self.port,
                                                socket.AF_UNSPEC,
                                                socket.SOCK_STREAM, 0)
-            except socket.gaierror, e:
+            except socket.gaierror as e:
                 # Don't croak on transient DNS resolution issues.
-                if e[0] in (socket.EAI_AGAIN, socket.EAI_NONAME,
+                if e.errno in (socket.EAI_AGAIN, socket.EAI_NONAME,
                             socket.EAI_NODATA):
                     LOG.debug('DNS resolution failure: %s: %s', self.host, e)
                     continue
@@ -681,7 +692,7 @@ class SenderThread(threading.Thread):
                     # if we get here it connected
                     LOG.debug('Connection to %s was successful' % (str(sockaddr)))
                     break
-                except socket.error, msg:
+                except socket.error as msg:
                     LOG.warning('Connection attempt failed to %s:%d: %s',
                                 self.host, self.port, msg)
                 self.tsd.close()
@@ -721,11 +732,11 @@ class SenderThread(threading.Thread):
         # try sending again next time.
         try:
             if self.dryrun:
-                print out
+                print(out)
             else:
                 self.tsd.sendall(out)
             self.sendq = []
-        except socket.error, msg:
+        except socket.error as msg:
             LOG.error('failed to send data: %s', msg)
             try:
                 self.tsd.close()
@@ -766,17 +777,17 @@ class SenderThread(threading.Thread):
                 metric_tags[tag_key] = tag_value
             metric_entry = {}
             metric_entry["metric"] = metric
-            metric_entry["timestamp"] = long(timestamp)
+            metric_entry["timestamp"] = int(timestamp)
             metric_entry["value"] = float(value)
             metric_entry["tags"] = dict(self.tags).copy()
             if len(metric_tags) + len(metric_entry["tags"]) > self.maxtags:
                 metric_tags_orig = set(metric_tags)
                 subset_metric_keys = frozenset(
                     metric_tags[:len(metric_tags[:self.maxtags - len(metric_entry["tags"])])])
-                metric_tags = dict((k, v) for k, v in metric_tags.iteritems() if k in subset_metric_keys)
+                metric_tags = dict((k, v) for k, v in metric_tags.items() if k in subset_metric_keys)
                 LOG.error("Exceeding maximum permitted metric tags - removing %s for metric %s",
                           str(metric_tags_orig - set(metric_tags)), metric)
-            if "host" in metric_tags.keys() and metric_tags["host"] == "__..skip_tag..__":
+            if "host" in list(metric_tags.keys()) and metric_tags["host"] == "__..skip_tag..__":
                 metric_tags.pop("host")
                 if "host" in metric_entry["tags"]:
                     metric_entry["tags"].pop("host", None)
@@ -784,32 +795,33 @@ class SenderThread(threading.Thread):
             metrics.append(metric_entry)
 
         if self.dryrun:
-            print "Would have sent:\n%s" % json.dumps(metrics,
+            print("Would have sent:\n%s" % json.dumps(metrics,
                                                       sort_keys=True,
-                                                      indent=4)
+                                                      indent=4))
             return
 
-        if ((self.current_tsd == -1) or (len(self.hosts) > 1)):
+        if (self.current_tsd == -1) or (len(self.hosts) > 1):
             self.pick_connection()
 
         url = self.build_http_url()
         LOG.debug("Sending metrics to %s", url)
-        req = urllib2.Request(url)
+        req = Request(url)
         if self.http_username and self.http_password:
-            req.add_header("Authorization", "Basic %s"
-                           % base64.b64encode("%s:%s" % (self.http_username, self.http_password)))
+            auth_header = ("%s:%s" % (self.http_username, self.http_password)).encode("utf-8")
+            req.add_header("Authorization", "Basic %s" % base64.b64encode(auth_header).decode("ascii"))
         req.add_header("Content-Type", "application/json")
 
         body = json.dumps(metrics)
 
-        if self.compression_threshold > 0 and len(body) >= self.compression_threshold:
+        if 0 < self.compression_threshold <= len(body):
             req.add_header("Content-Encoding", "deflate")
-            body = zlib.compress(body)
+            body = zlib.compress(body.encode("utf-8"))
 
         try:
             LOG.debug("Writing body of %d lines / %d bytes" % (len(self.sendq), len(body)))
-            response = urllib2.urlopen(req, body)
-            LOG.debug("Received response %s %s", response.getcode(), response.read().rstrip('\n'))
+            response = urlopen(req, body)
+            data = response.read().decode("utf-8")
+            LOG.debug("Received response %s %s", response.getcode(), data.rstrip('\n'))
             # clear out the sendq
             self.sendq = []
             # print "Got response code: %s" % response.getcode()
@@ -817,8 +829,9 @@ class SenderThread(threading.Thread):
             # for line in response:
             #     print line,
             #     print
-        except urllib2.HTTPError, e:
-            LOG.error("Got error %s %s while sending %d lines / %d bytes", e, e.read().rstrip('\n'),
+        except HTTPError as e:
+            data = e.read().decode("utf-8")
+            LOG.error("Got error %s %s while sending %d lines / %d bytes", e, data.rstrip('\n'),
                       len(self.sendq), len(body))
             if e.code == 401:
                 LOG.error("Please check if your access_token is correct in /etc/xcollector/xcollector.yml")
@@ -856,7 +869,7 @@ def parse_cmdline(argv):
 
     def tag_dict_to_str_list(dict):
         tag_list = []
-        for key, value in dict.iteritems():
+        for key, value in dict.items():
             tag_list.append(key.strip() + "=" + value.strip())
         return tag_list
 
@@ -968,7 +981,7 @@ def parse_cmdline(argv):
                       help=SUPPRESS_HELP)  # 'Username to use for HTTP Basic Auth when sending the data via HTTP'
     (options, args) = parser.parse_args(args=argv[1:])
     cmdline_dict = tag_str_list_to_dict(options.tags)
-    for key, value in defaults['tags'].iteritems():
+    for key, value in defaults['tags'].items():
         cmdline_dict[key] = value
     options.tags = tag_dict_to_str_list(cmdline_dict)
     if options.dedupinterval < 0:
@@ -989,7 +1002,7 @@ def daemonize():
     if os.fork():
         os._exit(0)
     os.chdir("/")
-    os.umask(022)
+    os.umask(0o22)
     os.setsid()
     os.umask(0)
     if os.fork():
@@ -1001,8 +1014,8 @@ def daemonize():
     os.dup2(stdout.fileno(), 2)
     stdin.close()
     stdout.close()
-    os.umask(022)
-    for fd in xrange(3, 1024):
+    os.umask(0o22)
+    for fd in range(3, 1024):
         try:
             os.close(fd)
         except OSError:  # This FD wasn't opened...
@@ -1255,7 +1268,7 @@ def reload_changed_config_modules(modules, options, sender, tags):
     changed = False
 
     # Reload any module that has changed.
-    for path, (module, timestamp) in modules.iteritems():
+    for path, (module, timestamp) in modules.items():
         if path not in current_paths:  # Module was removed.
             continue
         mtime = os.path.getmtime(path)
@@ -1294,7 +1307,7 @@ def write_pid(pidfile):
 def all_collectors():
     """Generator to return all collectors."""
 
-    return COLLECTORS.itervalues()
+    return iter(COLLECTORS.values())
 
 
 # collectors that are not marked dead
@@ -1417,7 +1430,7 @@ def spawn_collector(col):
                                     stderr=subprocess.PIPE,
                                     close_fds=True,
                                     preexec_fn=os.setsid)
-    except OSError, e:
+    except OSError as e:
         LOG.error('Failed to spawn collector %s: %s' % (col.filename, e))
         return
     # The following line needs to move below this line because it is used in

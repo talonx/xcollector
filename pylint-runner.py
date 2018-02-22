@@ -16,16 +16,21 @@ VERBOSE = False
 BASE_DIRECTORY = os.getcwd()
 SUMMARY = False
 
+
 class WritableObject(object):
     "dummy output stream for pylint"
+
     def __init__(self):
         self.content = []
+
     def write(self, st):
         "dummy write"
         self.content.append(st)
+
     def read(self):
         "dummy read"
         return self.content
+
 
 def run_pylint(filename, options):
     "run pylint on the given file"
@@ -35,20 +40,22 @@ def run_pylint(filename, options):
     pylint_output = WritableObject()
     from pylint import lint
     from pylint.reporters.text import TextReporter
-    lint.Run([filename]+ARGS, reporter=TextReporter(pylint_output), exit=False)
+    lint.Run([filename] + ARGS, reporter=TextReporter(pylint_output), exit=False)
     return pylint_output.read()
+
 
 def print_line(line):
     global VERBOSE
     if VERBOSE:
         print(line.rstrip())
 
+
 def check(module, options):
     '''
     apply pylint to the file specified if it is a *.py file
     '''
     global total, count, errors
-    
+
     if module[-3:] == ".py":
 
         args = ''
@@ -59,22 +66,23 @@ def check(module, options):
             if re.match("E\:.*", line):
                 errors += 1
                 if options.summary or options.verbose:
-                  print "Module: %s - %s" % (module, line.rstrip())
+                    print("Module: %s - %s" % (module, line.rstrip()))
             if re.match("[RCWF]\:.*", line) and options.show_all:
                 print_line(line)
-            if  re.match("E....:.", line):
+            if re.match("E....:.", line):
                 print_line(line)
             if "Your code has been rated at" in line:
                 print_line(line)
                 score = re.findall("\d.\d\d", line)[0]
                 total += float(score)
 
+
 def parse_cmdline(argv):
     """Parses the command-line."""
     global BASE_DIRECTORY, VERBOSE, SUMMARY
 
     DEFAULT_BASE_DIR = os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])),
-                                'collectors')
+                                    'collectors')
 
     parser = OptionParser(description='Runs pylint recursively on a directory')
 
@@ -97,22 +105,24 @@ def parse_cmdline(argv):
     BASE_DIRECTORY = options.base_directory
     return (options, args)
 
+
 def check_version():
-  ver = sys.version_info
-  if ver[0] == 2 and ver[1] < 7:
-    sys.stderr.write("Requires Python  >2.7 for pylint\n")
-    return False
-  return True
+    ver = sys.version_info
+    if ver[0] == 2 and ver[1] < 7:
+        sys.stderr.write("Requires Python  >2.7 for pylint\n")
+        return False
+    return True
+
 
 def main(argv):
     global BASE_DIRECTORY, VERBOSE
 
     if not check_version():
-      return 0
+        return 0
 
     options, args = parse_cmdline(argv)
 
-    print_line("looking for *.py scripts in subdirectories of %s" % (BASE_DIRECTORY)) 
+    print_line("looking for *.py scripts in subdirectories of %s" % (BASE_DIRECTORY))
 
     for root, dirs, files in os.walk(BASE_DIRECTORY):
         for name in files:
@@ -120,12 +130,13 @@ def main(argv):
             check(filepath, options)
 
     if options.summary:
-        print "==" * 50
-        print "%d modules found" % count
-        print "%d errors found" % errors
+        print("==" * 50)
+        print("%d modules found" % count)
+        print("%d errors found" % errors)
         if options.show_all and count > 0:
-            print "AVERAGE SCORE = %.02f" % (total / count)
+            print("AVERAGE SCORE = %.02f" % (total / count))
     return errors
+
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))

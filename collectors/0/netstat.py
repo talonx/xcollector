@@ -76,8 +76,8 @@ def main():
         sockstat = open("/proc/net/sockstat")
         netstat = open("/proc/net/netstat")
         snmp = open("/proc/net/snmp")
-    except IOError, e:
-        print >>sys.stderr, "open failed: %s" % e
+    except IOError as e:
+        utils.err("open failed: %s" % e)
         return 13  # Ask tcollector to not re-start us.
     utils.drop_privileges()
 
@@ -101,8 +101,7 @@ def main():
 
     def print_sockstat(metric, value, tags=""):  # Note: tags must start with ' '
         if value is not None:
-            print "net.sockstat.%s %d %s%s" % (metric, ts, value, tags)
-
+            print("net.sockstat.%s %d %s%s" % (metric, ts, value, tags))
 
     # If a line in /proc/net/{netstat,snmp} doesn't start with a word in that
     # dict, we'll ignore it.  We use the value to build the metric name.
@@ -116,7 +115,7 @@ def main():
         "Udp:": "udp",
         "UdpLite:": "udplite",  # We don't collect anything from here for now.
         "Arista:": "arista",  # We don't collect anything from here for now.
-        }
+    }
 
     # Any stat in /proc/net/{netstat,snmp} that doesn't appear in this dict will
     # be ignored.  If we find a match, we'll use the (metricname, tags).
@@ -249,14 +248,13 @@ def main():
         },
     }
 
-
     def print_netstat(statstype, metric, value, tags=""):
         if tags:
             space = " "
         else:
             tags = space = ""
-        print "net.stat.%s.%s %d %s%s%s" % (statstype, metric, ts, value,
-                                            space, tags)
+        print("net.stat.%s.%s %d %s%s%s" % (statstype, metric, ts, value,
+                                            space, tags))
 
     def parse_stats(stats, filename):
         statsdikt = {}
@@ -278,20 +276,19 @@ def main():
             assert header[0] == data[0], repr((header, data))
             assert len(header) == len(data), repr((header, data))
             if header[0] not in known_statstypes:
-                print >>sys.stderr, ("Unrecoginized line in %s:"
-                                     " %r (file=%r)" % (filename, header, stats))
+                utils.err("Unrecoginized line in %s: %r (file=%r)" % (filename, header, stats))
                 continue
             statstype = header.pop(0)
             data.pop(0)
-            stats = dict(zip(header, data))
+            stats = dict(list(zip(header, data)))
             statsdikt.setdefault(known_statstypes[statstype], {}).update(stats)
-        for statstype, stats in statsdikt.iteritems():
+        for statstype, stats in statsdikt.items():
             # Undo the kernel's double counting
             if "ListenDrops" in stats:
                 stats["ListenDrops"] = int(stats["ListenDrops"]) - int(stats.get("ListenOverflows", 0))
             elif "RcvbufErrors" in stats:
                 stats["InErrors"] = int(stats.get("InErrors", 0)) - int(stats["RcvbufErrors"])
-            for stat, (metric, tags) in known_stats[statstype].iteritems():
+            for stat, (metric, tags) in known_stats[statstype].items():
                 value = stats.get(stat)
                 if value is not None:
                     print_netstat(statstype, metric, value, tags)
@@ -306,24 +303,24 @@ def main():
         snmpstats = snmp.read()
         m = re.match(regexp, data)
         if not m:
-            print >>sys.stderr, "Cannot parse sockstat: %r" % data
+            utils.err("Cannot parse sockstat: %r" % data)
             return 13
 
         # The difference between the first two values is the number of
         # sockets allocated vs the number of sockets actually in use.
-        print_sockstat("num_sockets",   m.group("tcp_sockets"),   " type=tcp")
-        print_sockstat("num_timewait",  m.group("tw_count"))
-        print_sockstat("sockets_inuse", m.group("tcp_inuse"),     " type=tcp")
-        print_sockstat("sockets_inuse", m.group("udp_inuse"),     " type=udp")
+        print_sockstat("num_sockets", m.group("tcp_sockets"), " type=tcp")
+        print_sockstat("num_timewait", m.group("tw_count"))
+        print_sockstat("sockets_inuse", m.group("tcp_inuse"), " type=tcp")
+        print_sockstat("sockets_inuse", m.group("udp_inuse"), " type=udp")
         print_sockstat("sockets_inuse", m.group("udplite_inuse"), " type=udplite")
-        print_sockstat("sockets_inuse", m.group("raw_inuse"),     " type=raw")
+        print_sockstat("sockets_inuse", m.group("raw_inuse"), " type=raw")
 
         print_sockstat("num_orphans", m.group("orphans"))
         print_sockstat("memory", int(m.group("tcp_pages")) * page_size,
                        " type=tcp")
         if m.group("udp_pages") is not None:
-          print_sockstat("memory", int(m.group("udp_pages")) * page_size,
-                         " type=udp")
+            print_sockstat("memory", int(m.group("udp_pages")) * page_size,
+                           " type=udp")
         print_sockstat("memory", m.group("ip_frag_mem"), " type=ipfrag")
         print_sockstat("ipfragqueues", m.group("ip_frag_nqueues"))
 
@@ -332,6 +329,7 @@ def main():
 
         sys.stdout.flush()
         time.sleep(interval)
+
 
 if __name__ == "__main__":
     sys.exit(main())

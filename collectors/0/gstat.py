@@ -58,22 +58,25 @@ try:
 except ImportError:
     gstat_conf = None
 
-DEFAULT_COLLECTION_INTERVAL=15
+DEFAULT_COLLECTION_INTERVAL = 15
 
 signal_received = None
+
+
 def handlesignal(signum, stack):
     global signal_received
     signal_received = signum
 
+
 def main():
     """top main loop"""
 
-    collection_interval=DEFAULT_COLLECTION_INTERVAL
-    collection_filter=".*"
-    if(gstat_conf):
+    collection_interval = DEFAULT_COLLECTION_INTERVAL
+    collection_filter = ".*"
+    if (gstat_conf):
         config = gstat_conf.get_config()
-        collection_interval=config['collection_interval']
-        collection_filter=config['collection_filter']
+        collection_interval = config['collection_interval']
+        collection_filter = config['collection_filter']
 
     global signal_received
 
@@ -82,13 +85,13 @@ def main():
 
     try:
         p_gstat = subprocess.Popen(
-            ["gstat", "-B", "-d", "-o", "-s", "-I"+str(collection_interval)+"s", "-f"+str(collection_filter)],
+            ["gstat", "-B", "-d", "-o", "-s", "-I" + str(collection_interval) + "s", "-f" + str(collection_filter)],
             stdout=subprocess.PIPE,
         )
-    except OSError, e:
+    except OSError as e:
         if e.errno == errno.ENOENT:
             # it makes no sense to run this collector here
-            sys.exit(13) # we signal tcollector to not run us
+            sys.exit(13)  # we signal tcollector to not run us
         raise
 
     timestamp = 0
@@ -96,7 +99,7 @@ def main():
     while signal_received is None:
         try:
             line = p_gstat.stdout.readline()
-        except (IOError, OSError), e:
+        except (IOError, OSError) as e:
             if e.errno in (errno.EINTR, errno.EAGAIN):
                 break
             raise
@@ -105,31 +108,31 @@ def main():
             # end of the program, die
             break
 
-        if (not re.match("^ *[0-9]",line)):
+        if (not re.match("^ *[0-9]", line)):
             timestamp = int(time.time())
             continue
 
         fields = line.split()
 
-        print "disk.queue %s %s disk=%s" % (timestamp, fields[0], fields[17])
-        print "disk.ops.read %s %s disk=%s" % (timestamp, fields[2], fields[17])
-        print "disk.b.read %s %d disk=%s" % (timestamp, float(fields[3])*1024, fields[17])
-        print "disk.bps.read %s %d disk=%s" % (timestamp, float(fields[4])*1024, fields[17])
-        print "disk.ms.read %s %s disk=%s" % (timestamp, float(fields[5]), fields[17])
-        print "disk.ops.write %s %s disk=%s" % (timestamp, fields[6], fields[17])
-        print "disk.b.write %s %d disk=%s" % (timestamp, float(fields[7])*1024, fields[17])
-        print "disk.bps.write %s %d disk=%s" % (timestamp, float(fields[8])*1024, fields[17])
-        print "disk.ms.write %s %s disk=%s" % (timestamp, float(fields[9]), fields[17])
-        print "disk.ops.delete %s %s disk=%s" % (timestamp, fields[10], fields[17])
-        print "disk.b.delete %s %d disk=%s" % (timestamp, float(fields[11])*1024, fields[17])
-        print "disk.bps.delete %s %d disk=%s" % (timestamp, float(fields[12])*1024, fields[17])
-        print "disk.ms.delete %s %s disk=%s" % (timestamp, float(fields[13]), fields[17])
-        print "disk.ops.other %s %s disk=%s" % (timestamp, fields[14], fields[17])
-        print "disk.ms.other %s %s disk=%s" % (timestamp, float(fields[15]), fields[17])
-        print "disk.busy %s %s disk=%s" % (timestamp, fields[16], fields[17])
+        print("disk.queue %s %s disk=%s" % (timestamp, fields[0], fields[17]))
+        print("disk.ops.read %s %s disk=%s" % (timestamp, fields[2], fields[17]))
+        print("disk.b.read %s %d disk=%s" % (timestamp, float(fields[3]) * 1024, fields[17]))
+        print("disk.bps.read %s %d disk=%s" % (timestamp, float(fields[4]) * 1024, fields[17]))
+        print("disk.ms.read %s %s disk=%s" % (timestamp, float(fields[5]), fields[17]))
+        print("disk.ops.write %s %s disk=%s" % (timestamp, fields[6], fields[17]))
+        print("disk.b.write %s %d disk=%s" % (timestamp, float(fields[7]) * 1024, fields[17]))
+        print("disk.bps.write %s %d disk=%s" % (timestamp, float(fields[8]) * 1024, fields[17]))
+        print("disk.ms.write %s %s disk=%s" % (timestamp, float(fields[9]), fields[17]))
+        print("disk.ops.delete %s %s disk=%s" % (timestamp, fields[10], fields[17]))
+        print("disk.b.delete %s %d disk=%s" % (timestamp, float(fields[11]) * 1024, fields[17]))
+        print("disk.bps.delete %s %d disk=%s" % (timestamp, float(fields[12]) * 1024, fields[17]))
+        print("disk.ms.delete %s %s disk=%s" % (timestamp, float(fields[13]), fields[17]))
+        print("disk.ops.other %s %s disk=%s" % (timestamp, fields[14], fields[17]))
+        print("disk.ms.other %s %s disk=%s" % (timestamp, float(fields[15]), fields[17]))
+        print("disk.busy %s %s disk=%s" % (timestamp, fields[16], fields[17]))
 
         sys.stdout.flush()
-        
+
     if signal_received is None:
         signal_received = signal.SIGTERM
     try:
@@ -137,6 +140,7 @@ def main():
     except Exception:
         pass
     p_gstat.wait()
+
 
 if __name__ == "__main__":
     main()

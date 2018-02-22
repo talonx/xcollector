@@ -12,11 +12,19 @@
 # of the GNU Lesser General Public License along with this program.  If not,
 # see <http://www.gnu.org/licenses/>.
 
-import httplib
+import sys
+
+is_py2 = sys.version[0] == '2'
+if is_py2:
+    import httplib as httplib
+else:
+    import http.client as httplib
+
 try:
     import json
 except ImportError:
     json = None
+
 try:
     from collections import OrderedDict  # New in Python 2.7
 except ImportError:
@@ -27,6 +35,7 @@ EXCLUDED_KEYS = (
     "Name",
     "name"
 )
+
 
 class HadoopHttp(object):
     def __init__(self, service, daemon, host, port, uri="/jmx"):
@@ -59,16 +68,16 @@ class HadoopHttp(object):
         for bean in json_arr:
             if (not bean['name']) or (not "name=" in bean['name']):
                 continue
-            #split the name string
+            # split the name string
             context = bean['name'].split("name=")[1].split(",sub=")
             # Create a set that keeps the first occurrence
-            context = OrderedDict.fromkeys(context).keys()
+            context = list(OrderedDict.fromkeys(context).keys())
             # lower case and replace spaces.
             context = [c.lower().replace(" ", "_") for c in context]
             # don't want to include the service or daemon twice
             context = [c for c in context if c != self.service and c != self.daemon]
 
-            for key, value in bean.iteritems():
+            for key, value in bean.items():
                 if key in EXCLUDED_KEYS:
                     continue
                 if not is_numeric(value):
@@ -78,11 +87,12 @@ class HadoopHttp(object):
 
     def emit_metric(self, context, current_time, metric_name, value, tag_dict=None):
         if not tag_dict:
-            print "%s.%s.%s.%s %d %d" % (self.service, self.daemon, ".".join(context), metric_name, current_time, value)
+            print("%s.%s.%s.%s %d %d" % (
+            self.service, self.daemon, ".".join(context), metric_name, current_time, value))
         else:
-            tag_string = " ".join([k + "=" + v for k, v in tag_dict.iteritems()])
-            print "%s.%s.%s.%s %d %d %s" % \
-                  (self.service, self.daemon, ".".join(context), metric_name, current_time, value, tag_string)
+            tag_string = " ".join([k + "=" + v for k, v in tag_dict.items()])
+            print("%s.%s.%s.%s %d %d %s" % \
+                  (self.service, self.daemon, ".".join(context), metric_name, current_time, value, tag_string))
 
     def emit(self):
         pass
