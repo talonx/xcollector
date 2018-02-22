@@ -21,6 +21,7 @@ import mocks
 import tcollector
 from grok_scraper import munge_metric_name
 
+
 class CollectorsTests(unittest.TestCase):
 
     def test_collectorsAccessRights(self):
@@ -134,7 +135,7 @@ class UDPCollectorTests(unittest.TestCase):
 
         sys.exit = lambda x: None
         try:
-            exec(compile(open(self.udp_bridge.filename).read(), self.udp_bridge.filename, 'exec'), self.udp_globals)
+            self.exec_script()
         finally:
             sys.exit = self.saved_exit
 
@@ -142,6 +143,11 @@ class UDPCollectorTests(unittest.TestCase):
         self.udp_globals['sys'] = mocks.Sys()
         self.udp_globals['udp_bridge_conf'].enabled = lambda: True
         self.udp_globals['utils'] = mocks.Utils()
+
+    def exec_script(self):
+        with open(self.udp_bridge.filename) as file:
+            code = compile(file.read(), self.udp_bridge.filename, 'exec')
+            exec(code, self.udp_globals)
 
     def run_bridge_test(self, udpInputLines, stdoutLines, stderrLines):
         mockSocket = self.udp_globals['socket'] = mocks.Socket()
