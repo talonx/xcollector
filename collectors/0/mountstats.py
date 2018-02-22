@@ -79,11 +79,9 @@
 # proc.mountstats.bytes.writepages 1464196613 2477054 nfshost=fls1.sys.lab1.syseng.tmcs nfsvol=/vol/vol0
 """
 
-import os
-import socket
 import sys
 import time
-import md5
+import hashlib
 
 COLLECTION_INTERVAL = 10  # seconds
 
@@ -143,7 +141,9 @@ def main():
             # ( If multiple subdirectories of the same volume are mounted to different places they
             #   will show up in mountstats, but will have duplicate data. )
             if field == "events":
-                m = md5.new(line).digest()
+                digester = hashlib.md5()
+                digester.update(line)
+                m = digester.digest()
                 rpc_metrics[device]['digest'] = m
                 if m in rpc_metrics:
                     # metrics already counted, mark as dupe ignore

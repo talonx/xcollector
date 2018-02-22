@@ -47,7 +47,7 @@ def is_sockfile(path):
     except OSError as os_error:
         if os_error.errno == errno.ENOENT:
             return False
-        err("warning: couldn't stat(%r): %s" % (path, os_error.message))
+        err("warning: couldn't stat(%r): %s" % (path, os_error.args[1]))
         return None
     return s.st_mode & stat.S_IFSOCK == stat.S_IFSOCK
 

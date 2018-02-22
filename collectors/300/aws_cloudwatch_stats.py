@@ -139,7 +139,7 @@ def handle_region(region, statistic):
     except boto.exception.BotoServerError as e:
         #       sys.stderr.write("finished region " + region + "," + statistic + "\n")
         pass
-    except exceptions.KeyboardInterrupt:
+    except KeyboardInterrupt:
         return 0
     except:
         sys.stderr.write("failed region " + region + "," + statistic + "\n")
@@ -166,7 +166,7 @@ def send_metrics():
             for output in outputs:
                 for t in output:
                     print(t)
-    except exceptions.KeyboardInterrupt:
+    except KeyboardInterrupt:
         return 0
 
 
@@ -195,7 +195,7 @@ def main():
                 t.start()
         while threading.activeCount() > 1:
             time.sleep(1)
-    except exceptions.KeyboardInterrupt:
+    except KeyboardInterrupt:
         return 0
     except:
         raise
