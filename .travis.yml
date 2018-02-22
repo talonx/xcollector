@@ -19,6 +19,8 @@ before_script:
   - echo $PACKAGE_VERSION
 
 script:
+  - python -c "import sys; print('python version:%s' % sys.version);"
+  - python -c "import sys; print('python version:%s' % sys.version[0]);"
   - ./pylint-runner.py -s
   - ./tests.py
   - make -C rpm
