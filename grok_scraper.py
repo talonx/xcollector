@@ -17,6 +17,7 @@ import traceback
 from io import StringIO
 
 from collectors.etc import grok_scraper_conf
+from collectors.lib import utils
 
 COLLECTION_INTERVAL_SECONDS = 15
 MATCHING_FILE_POLLING_INTERVAL_SECONDS = 1
@@ -305,7 +306,7 @@ def fetch_metrics():
                     else:
                         print_metric(g[0], timestamp, g[2], tags)
         except:
-            print("Unexpected error:", sys.exc_info()[0])
+            utils.err("Unexpected error: %s" % sys.exc_info()[0])
             traceback.print_exc()
             die()
 

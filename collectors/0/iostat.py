@@ -247,7 +247,7 @@ def main():
                     print("%s%s %d %s dev=%s"
                            % (metric, FIELDS_PART[i], ts, values[i + 3], device))
             else:
-                utils.err("Cannot parse /proc/diskstats line: ", line)
+                utils.err("Cannot parse /proc/diskstats line: %s" % line)
                 continue
 
         sys.stdout.flush()

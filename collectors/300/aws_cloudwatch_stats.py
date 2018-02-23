@@ -64,7 +64,7 @@ def cloudwatch_connect_to_region(region):
         conn = boto.ec2.cloudwatch.connect_to_region(region, aws_access_key_id=access_key,
                                                      aws_secret_access_key=secret_access_key)
     except:
-        print("Unexpected error:", sys.exc_info()[0])
+        utils.err("Unexpected error: %s" % sys.exc_info()[0])
     else:
         return conn
 

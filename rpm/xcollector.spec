@@ -106,7 +106,7 @@ mkdir -p %{buildroot}/%{py2_sitelib}/
 %{tcollectordir}/collectors/0/ifstat.py
 %{tcollectordir}/collectors/0/iostat.py
 %{tcollectordir}/collectors/0/netstat.py
-#%{tcollectordir}/collectors/0/procnettcp.py
+%{tcollectordir}/collectors/0/procnettcp.py
 %{tcollectordir}/collectors/0/procstats.py
 #%{tcollectordir}/collectors/0/smart_stats.py
 %{tcollectordir}/collectors/0/mysql.py

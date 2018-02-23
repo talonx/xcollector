@@ -145,7 +145,7 @@ def main(unused_args):
     try:  # On some Linux kernel versions, with lots of connections
         os.nice(19)  # this collector can be very CPU intensive.  So be nicer.
     except OSError as e:
-        utils.err("warning: failed to self-renice:", e)
+        utils.err("warning: failed to self-renice: %s" % e)
 
     interval = 60
 

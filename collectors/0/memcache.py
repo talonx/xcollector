@@ -65,7 +65,7 @@ def find_memcached():
 
         port = line.find(" -p ")
         if port < 0:
-            utils.err("Weird memcached process without a -p argument:", line)
+            utils.err("Weird memcached process without a -p argument: %s" % line)
             continue
         port = line[port + 4: line.index(" ", port + 5)]
         port = int(port)
@@ -73,7 +73,7 @@ def find_memcached():
             utils.err("Host and port: %s %d" % (host, port))
             yield host, port
         else:
-            utils.err("Unknown memached port:", port)
+            utils.err("Unknown memached port: %s" % port)
 
 
 def collect_stats(sock):
