@@ -222,9 +222,9 @@ def main(unused_args):
                         key = ("state=%s endpoint=%s service=%s user=%s"
                                % (TCPSTATES[state], endpoint, service, user))
                         if key in counter:
-                            print("proc.net.tcp", ts, counter[key], key)
+                            print("proc.net.tcp %d %s %s" % (ts, counter[key], key))
                         else:
-                            print("proc.net.tcp", ts, "0", key)
+                            print("proc.net.tcp %d %s %s" % (ts, "0", key))
 
         sys.stdout.flush()
         time.sleep(interval)
