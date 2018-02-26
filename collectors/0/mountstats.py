@@ -79,22 +79,23 @@
 # proc.mountstats.bytes.writepages 1464196613 2477054 nfshost=fls1.sys.lab1.syseng.tmcs nfsvol=/vol/vol0
 """
 
-import os
-import socket
 import sys
 import time
-import md5
+import hashlib
 
 COLLECTION_INTERVAL = 10  # seconds
 
 # BYTES_FIELDS is individual fields in the 'bytes:  '   line
-BYTES_FIELDS = ['normalread', 'normalwrite', 'directread', 'directwrite', 'serverread', 'serverwrite', 'readpages', 'writepages']
+BYTES_FIELDS = ['normalread', 'normalwrite', 'directread', 'directwrite', 'serverread', 'serverwrite', 'readpages',
+                'writepages']
 # KEY_METRICS contains the RPC call metrics we want specific data for
 KEY_METRICS = ['GETATTR', 'ACCESS', 'READ', 'WRITE']
 # OTHER_METRICS contains the other RPC call we will aggregate as 'OTHER'
-OTHER_METRICS = ['SETATTR', 'LOOKUP', 'READLINK', 'CREATE', 'MKDIR', 'SYMLINK', 'MKNOD', 'REMOVE', 'RMDIR', 'RENAME', 'LINK', 'READDIR', 'READDIRPLUS', 'FSSTAT', 'FSINFO', 'PATHCONF', 'COMMIT']
+OTHER_METRICS = ['SETATTR', 'LOOKUP', 'READLINK', 'CREATE', 'MKDIR', 'SYMLINK', 'MKNOD', 'REMOVE', 'RMDIR', 'RENAME',
+                 'LINK', 'READDIR', 'READDIRPLUS', 'FSSTAT', 'FSINFO', 'PATHCONF', 'COMMIT']
 # RPC_FIELDS is the individual metric fields on the RPC metric lines
 RPC_FIELDS = ['ops', 'txs', 'timeouts', 'txbytes', 'rxbytes', 'qtime', 'rttime', 'totaltime']
+
 
 def main():
     """nfsstats main loop."""
@@ -107,7 +108,7 @@ def main():
         device = None
         f_nfsstats.seek(0)
         ts = int(time.time())
-        rpc_metrics = { }
+        rpc_metrics = {}
         for line in f_nfsstats:
             values = line.split(None)
             if len(values) == 0:
@@ -120,13 +121,13 @@ def main():
                     mountpoint = values[4]
                     mount = mount.rstrip("/")
                     device = hostname + mount + mountpoint
-                    rpc_metrics[device] = { }
-                    rpc_metrics[device]['other'] = dict((x,0) for x in RPC_FIELDS)
+                    rpc_metrics[device] = {}
+                    rpc_metrics[device]['other'] = dict((x, 0) for x in RPC_FIELDS)
                     rpc_metrics[device]['nfshost'] = hostname
                     rpc_metrics[device]['nfsvol'] = mount
-                    rpc_metrics[device]['mounts'] = [ mount ]
+                    rpc_metrics[device]['mounts'] = [mount]
                     for metric in KEY_METRICS:
-                        rpc_metrics[device][metric] = dict((x,0) for x in RPC_FIELDS)
+                        rpc_metrics[device][metric] = dict((x, 0) for x in RPC_FIELDS)
 
             if device == None:
                 continue
@@ -140,29 +141,31 @@ def main():
             # ( If multiple subdirectories of the same volume are mounted to different places they
             #   will show up in mountstats, but will have duplicate data. )
             if field == "events":
-                m = md5.new(line).digest()
+                digester = hashlib.md5()
+                digester.update(line)
+                m = digester.digest()
                 rpc_metrics[device]['digest'] = m
                 if m in rpc_metrics:
                     # metrics already counted, mark as dupe ignore
                     dupe = True
-                    first_device=rpc_metrics[m]
+                    first_device = rpc_metrics[m]
                     rpc_metrics[first_device]['mounts'].append(mount)
                     rpc_metrics[device]['dupe'] = True
                 else:
                     rpc_metrics[m] = device
 
             if field == "bytes":
-                rpc_metrics[device]['bytes'] = dict((BYTES_FIELDS[i], values[i+1]) for i in range(0, len(BYTES_FIELDS)))
+                rpc_metrics[device]['bytes'] = dict(
+                    (BYTES_FIELDS[i], values[i + 1]) for i in range(0, len(BYTES_FIELDS)))
 
             if field in KEY_METRICS:
                 for i in range(1, len(RPC_FIELDS) + 1):
                     metric = field
-                    rpc_metrics[device][metric][RPC_FIELDS[i-1]] += int(values[i])
+                    rpc_metrics[device][metric][RPC_FIELDS[i - 1]] += int(values[i])
 
             if field in OTHER_METRICS:
                 for i in range(1, len(RPC_FIELDS) + 1):
-                    rpc_metrics[device]['other'][RPC_FIELDS[i-1]] += int(values[i])
-
+                    rpc_metrics[device]['other'][RPC_FIELDS[i - 1]] += int(values[i])
 
         for device in rpc_metrics:
             # Skip the duplicates
@@ -174,15 +177,14 @@ def main():
             nfshost = rpc_metrics[device]['nfshost']
             rpc_metrics[device]['mounts'].sort()
             nfsvol = rpc_metrics[device]['mounts'][0]
-            for metric in KEY_METRICS+['other']:
+            for metric in KEY_METRICS + ['other']:
                 for field in rpc_metrics[device][metric]:
-                    print "proc.mountstats.%s.%s %d %s nfshost=%s nfsvol=%s" % (metric.lower(), field.lower(), ts, rpc_metrics[device][metric][field], nfshost, nfsvol)
+                    print("proc.mountstats.%s.%s %d %s nfshost=%s nfsvol=%s" % (metric.lower(), field.lower(), ts, rpc_metrics[device][metric][field], nfshost, nfsvol))
             for field in BYTES_FIELDS:
-                print "proc.mountstats.bytes.%s %d %s nfshost=%s nfsvol=%s" % (field.lower(), ts, rpc_metrics[device]['bytes'][field], nfshost, nfsvol)
+                print("proc.mountstats.bytes.%s %d %s nfshost=%s nfsvol=%s" % (field.lower(), ts, rpc_metrics[device]['bytes'][field], nfshost, nfsvol))
 
         sys.stdout.flush()
         time.sleep(COLLECTION_INTERVAL)
-
 
 
 if __name__ == "__main__":

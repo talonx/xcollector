@@ -55,7 +55,6 @@ import time
 
 from collectors.lib import utils
 
-
 USERS = ("root", "www-data", "mysql")
 
 # Note if a service runs on multiple ports and you
@@ -101,9 +100,9 @@ PORTS = {
     11226: "memcache",
     50020: "datanode",
     60020: "hregionserver",
-    }
+}
 
-SERVICES = tuple(set(PORTS.itervalues()))
+SERVICES = tuple(set(PORTS.values()))
 
 TCPSTATES = {
     "01": "established",
@@ -117,7 +116,7 @@ TCPSTATES = {
     "09": "last_ack",
     "0A": "listen",
     "0B": "closing",
-    }
+}
 
 
 def is_public_ip(ipstr):
@@ -143,10 +142,10 @@ def is_public_ip(ipstr):
 
 def main(unused_args):
     """procnettcp main loop"""
-    try:           # On some Linux kernel versions, with lots of connections
-      os.nice(19)  # this collector can be very CPU intensive.  So be nicer.
-    except OSError, e:
-      print >>sys.stderr, "warning: failed to self-renice:", e
+    try:  # On some Linux kernel versions, with lots of connections
+        os.nice(19)  # this collector can be very CPU intensive.  So be nicer.
+    except OSError as e:
+        utils.err("warning: failed to self-renice: %s" % e)
 
     interval = 60
 
@@ -165,13 +164,13 @@ def main(unused_args):
         # address size
         try:
             tcp6 = open("/proc/net/tcp6")
-        except IOError, (errno, msg):
-            if errno == 2:  # No such file => IPv6 is disabled.
+        except IOError as io_err:
+            if io_err.errno == 2:  # No such file => IPv6 is disabled.
                 tcp6 = None
             else:
                 raise
-    except IOError, e:
-        print >>sys.stderr, "Failed to open input file: %s" % (e,)
+    except IOError as e:
+        utils.err("Failed to open input file: %s" % e)
         return 13  # Ask tcollector to not re-start us immediately.
 
     utils.drop_privileges()
@@ -206,7 +205,6 @@ def main(unused_args):
                 else:
                     endpoint = "internal"
 
-
                 user = uids.get(uid, "other")
 
                 key = "state=" + TCPSTATES[state] + " endpoint=" + endpoint + \
@@ -224,12 +222,13 @@ def main(unused_args):
                         key = ("state=%s endpoint=%s service=%s user=%s"
                                % (TCPSTATES[state], endpoint, service, user))
                         if key in counter:
-                            print "proc.net.tcp", ts, counter[key], key
+                            print("proc.net.tcp %d %s %s" % (ts, counter[key], key))
                         else:
-                            print "proc.net.tcp", ts, "0", key
+                            print("proc.net.tcp %d %s %s" % (ts, "0", key))
 
         sys.stdout.flush()
         time.sleep(interval)
+
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

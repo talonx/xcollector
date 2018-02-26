@@ -45,6 +45,7 @@ FIELDS = ("bytes", "packets", "errs", "dropped",
 
 METRIC_MAPPING = yaml_conf.load_collector_configuration('node_metrics.yml')
 
+
 def main():
     """ifstat main loop"""
 
@@ -87,14 +88,16 @@ def main():
                 if i >= 8:
                     return "out"
                 return "in"
-            for i in xrange(16):
+
+            for i in range(16):
                 print("proc.net.%s %d %s iface=%s direction=%s"
-                      % (FIELDS[i], ts, stats[i], intf, direction(i)))
+                       % (FIELDS[i], ts, stats[i], intf, direction(i)))
                 metric_naming.print_if_apptuit_standard_metric("proc.net." + FIELDS[i], METRIC_MAPPING, ts, stats[i],
                                                                {"iface": intf, "direction": direction(i)})
 
         sys.stdout.flush()
         time.sleep(interval)
+
 
 if __name__ == "__main__":
     sys.exit(main())

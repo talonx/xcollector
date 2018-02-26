@@ -14,9 +14,10 @@ import time
 import yaml
 import traceback
 
-from StringIO import StringIO
+from io import StringIO
 
 from collectors.etc import grok_scraper_conf
+from collectors.lib import utils
 
 COLLECTION_INTERVAL_SECONDS = 15
 MATCHING_FILE_POLLING_INTERVAL_SECONDS = 1
@@ -241,6 +242,7 @@ def munge_metric_name(metric):
         new_name = re.sub(r'\0', "_", new_name)
     return new_name
 
+
 def main():
     signal.signal(signal.SIGTERM, die)
     exporter_dir = grok_scraper_conf.get_grok_exporter_dir()
@@ -272,7 +274,7 @@ def fetch_metrics():
     def print_metric(metric_name, timestamp, value, tags):
         print("%s %s %s %s" % (munge_metric_name(metric_name), timestamp, format_metric_value(value), tags))
 
-    for (url, patterns) in urls_vs_patterns.iteritems():
+    for (url, patterns) in urls_vs_patterns.items():
         try:
             response = requests.get(url)
             timestamp = int(time.time())
@@ -304,7 +306,7 @@ def fetch_metrics():
                     else:
                         print_metric(g[0], timestamp, g[2], tags)
         except:
-            print("Unexpected error:", sys.exc_info()[0])
+            utils.err("Unexpected error: %s" % sys.exc_info()[0])
             traceback.print_exc()
             die()
 

@@ -44,7 +44,14 @@ import json
 import os
 import sys
 import time
-import urllib2
+try:
+    from urllib.request import urlopen
+    from urllib.error import HTTPError
+    from http.client import HTTPException
+except ImportError:
+    from urllib2 import urlopen
+    from urllib2 import HTTPError
+    from httplib import HTTPException
 
 from collectors.lib import utils
 
@@ -69,7 +76,7 @@ MAP = {
     'executing_mappers': ('executing_mappers', ''),
     'mem_allocated': ('memory.allocated', ''),
     'mem_total': ('memory.total', ''),
-    #connected_nodes is calculated
+    # connected_nodes is calculated
 }
 
 
@@ -87,12 +94,12 @@ def main():
 
     def print_stat(metric, value, tags=""):
         if value is not None:
-            print "riak.%s %d %s %s" % (metric, ts, value, tags)
+            print("riak.%s %d %s %s" % (metric, ts, value, tags))
 
     while True:
         ts = int(time.time())
 
-        req = urllib2.urlopen("http://localhost:8098/stats")
+        req = urlopen("http://localhost:8098/stats")
         if req is not None:
             obj = json.loads(req.read())
             for key in obj:

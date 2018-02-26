@@ -13,37 +13,41 @@
 # see <http://www.gnu.org/licenses/>.
 """Listens on a local TCP socket for incoming metrics in the graphite protocol."""
 
-from __future__ import print_function
-
 import sys
-from collectors.lib import utils
-import SocketServer
 import threading
 
 try:
-  from collectors.etc import graphite_bridge_conf
+    import SocketServer as socketserver
 except ImportError:
-  graphite_bridge_conf = None
+    import socketserver as socketserver
+
+from collectors.lib import utils
+
+try:
+    from collectors.etc import graphite_bridge_conf
+except ImportError:
+    graphite_bridge_conf = None
 
 HOST = '127.0.0.1'
 PORT = 2003
 SIZE = 8192
 
-class GraphiteServer(SocketServer.ThreadingTCPServer):
+
+class GraphiteServer(socketserver.ThreadingTCPServer):
     allow_reuse_address = True
 
     print_lock = threading.Lock()
 
-class GraphiteHandler(SocketServer.BaseRequestHandler):
+
+class GraphiteHandler(socketserver.BaseRequestHandler):
 
     def handle_line(self, line):
         line_parts = line.split()
         with self.server.print_lock:
             if len(line_parts) != 3:
-                print("Bad data:", line, file=sys.stderr)
+                utils.err("Bad data: %s" % line)
             else:
                 print(line_parts[0], line_parts[2], line_parts[1])
-
 
     def handle(self):
         data = ''
@@ -65,7 +69,7 @@ class GraphiteHandler(SocketServer.BaseRequestHandler):
 
 def main():
     if not (graphite_bridge_conf and graphite_bridge_conf.enabled()):
-      sys.exit(13)
+        sys.exit(13)
     utils.drop_privileges()
 
     server = GraphiteServer((HOST, PORT), GraphiteHandler)
@@ -75,6 +79,7 @@ def main():
     except KeyboardInterrupt:
         server.shutdown()
         server.server_close()
+
 
 if __name__ == "__main__":
     main()

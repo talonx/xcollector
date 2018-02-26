@@ -49,8 +49,8 @@ def main():
 
     try:
         f_nfs = open("/proc/net/rpc/nfs")
-    except IOError, e:
-        print >>sys.stderr, "Failed to open input file: %s" % (e,)
+    except IOError as e:
+        utils.err("Failed to open input file: %s" % e)
         return 13  # Ask tcollector to not re-start us immediately.
 
     utils.drop_privileges()
@@ -59,31 +59,31 @@ def main():
         ts = int(time.time())
         for line in f_nfs:
             fields = line.split()
-            if fields[0] in nfs_client_proc_names.keys():
+            if fields[0] in list(nfs_client_proc_names.keys()):
                 # NFSv4
                 # first entry should equal total count of subsequent entries
                 assert int(fields[1]) == len(fields[2:]), (
-                    "reported count (%d) does not equal list length (%d)"
-                    % (int(fields[1]), len(fields[2:])))
+                        "reported count (%d) does not equal list length (%d)"
+                        % (int(fields[1]), len(fields[2:])))
                 for idx, val in enumerate(fields[2:]):
                     try:
-                        print ("nfs.client.rpc %d %s op=%s version=%s"
+                        print("nfs.client.rpc %d %s op=%s version=%s"
                                % (ts, int(val), nfs_client_proc_names[fields[0]][idx], fields[0][4:]))
                     except IndexError:
-                        print >> sys.stderr, ("Warning: name lookup failed"
-                                              " at position %d" % idx)
+                        utils.err("Warning: name lookup failed at position %d" % idx)
             elif fields[0] == "rpc":
                 # RPC
                 calls = int(fields[1])
                 retrans = int(fields[2])
                 authrefrsh = int(fields[3])
-                print "nfs.client.rpc.stats %d %d type=calls" % (ts, calls)
-                print "nfs.client.rpc.stats %d %d type=retrans" % (ts, retrans)
-                print ("nfs.client.rpc.stats %d %d type=authrefrsh"
+                print("nfs.client.rpc.stats %d %d type=calls" % (ts, calls))
+                print("nfs.client.rpc.stats %d %d type=retrans" % (ts, retrans))
+                print("nfs.client.rpc.stats %d %d type=authrefrsh"
                        % (ts, authrefrsh))
 
         sys.stdout.flush()
         time.sleep(COLLECTION_INTERVAL)
+
 
 if __name__ == "__main__":
     sys.exit(main())

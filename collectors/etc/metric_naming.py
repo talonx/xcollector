@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 def print_if_apptuit_standard_metric(metric, mapping, timestamp, value, tags=None, tags_str=None):
-    if metric not in mapping["metrics"].keys():
+    if metric not in list(mapping["metrics"].keys()):
         return
     new_metric_name = mapping["metrics"][metric]["standard_name"]
     new_metric_tags_str = ""
@@ -24,5 +24,5 @@ def print_if_apptuit_standard_metric(metric, mapping, timestamp, value, tags=Non
         if tags_str is not None:
             new_metric_tags_str = new_metric_tags_str.strip()
             new_metric_tags_str += " " + tags_str.strip()
-    print ("%s %d %s %s"
+    print("%s %d %s %s"
            % (new_metric_name, timestamp, value, new_metric_tags_str))

@@ -21,6 +21,7 @@ import mocks
 import tcollector
 from grok_scraper import munge_metric_name
 
+
 class CollectorsTests(unittest.TestCase):
 
     def test_collectorsAccessRights(self):
@@ -42,7 +43,7 @@ class CollectorsTests(unittest.TestCase):
                     pass
 
         collectors_path = os.path.dirname(os.path.abspath(__file__)) + \
-            "/collectors/0"
+                          "/collectors/0"
         check_access_rights(collectors_path)
 
 
@@ -104,6 +105,7 @@ class TSDBlacklistingTests(unittest.TestCase):
         sender.pick_connection()
         self.assertEqual(tsd1, (sender.host, sender.port))
 
+
 class GrokScraperTests(unittest.TestCase):
 
     def test_munge_metric_name(self):
@@ -117,7 +119,6 @@ class GrokScraperTests(unittest.TestCase):
         self.assertEqual(munge_metric_name("tomcat______request_count"), "tomcat___request.count")
         self.assertEqual(munge_metric_name("tomcat_request_count__"), "tomcat.request.count_")
         self.assertEqual(munge_metric_name("__tomcat_request_count"), "_tomcat.request.count")
-
 
 
 class UDPCollectorTests(unittest.TestCase):
@@ -134,7 +135,7 @@ class UDPCollectorTests(unittest.TestCase):
 
         sys.exit = lambda x: None
         try:
-            execfile(self.udp_bridge.filename, self.udp_globals)
+            self.exec_script()
         finally:
             sys.exit = self.saved_exit
 
@@ -142,6 +143,11 @@ class UDPCollectorTests(unittest.TestCase):
         self.udp_globals['sys'] = mocks.Sys()
         self.udp_globals['udp_bridge_conf'].enabled = lambda: True
         self.udp_globals['utils'] = mocks.Utils()
+
+    def exec_script(self):
+        with open(self.udp_bridge.filename) as file:
+            code = compile(file.read(), self.udp_bridge.filename, 'exec')
+            exec(code, self.udp_globals)
 
     def run_bridge_test(self, udpInputLines, stdoutLines, stderrLines):
         mockSocket = self.udp_globals['socket'] = mocks.Socket()
@@ -175,7 +181,7 @@ class UDPCollectorTests(unittest.TestCase):
         stdout = []
         self.run_bridge_test(inputLines, stdout, stderr)
 
-        self.assertEquals(''.join(stdout), expected)
+        self.assertEqual(''.join(stdout), expected)
         self.assertListEqual(stderr, [])
 
     def test_single_line_put(self):
@@ -189,7 +195,7 @@ class UDPCollectorTests(unittest.TestCase):
         stdout = []
 
         self.run_bridge_test(inputLines, stdout, stderr)
-        self.assertEquals(''.join(stdout), expected)
+        self.assertEqual(''.join(stdout), expected)
         self.assertListEqual(stderr, [])
 
     def test_multi_line_no_put(self):
@@ -202,7 +208,7 @@ class UDPCollectorTests(unittest.TestCase):
         stdout = []
 
         self.run_bridge_test(inputLines, stdout, stderr)
-        self.assertEquals(''.join(stdout), expected)
+        self.assertEqual(''.join(stdout), expected)
         self.assertListEqual(stderr, [])
 
     def test_multi_line_put(self):
@@ -218,7 +224,7 @@ class UDPCollectorTests(unittest.TestCase):
         stdout = []
 
         self.run_bridge_test(inputLines, stdout, stderr)
-        self.assertEquals(''.join(stdout), expected)
+        self.assertEqual(''.join(stdout), expected)
         self.assertListEqual(stderr, [])
 
     def test_multi_line_mixed_put(self):
@@ -236,7 +242,7 @@ class UDPCollectorTests(unittest.TestCase):
         stdout = []
 
         self.run_bridge_test(inputLines, stdout, stderr)
-        self.assertEquals(''.join(stdout), expected)
+        self.assertEqual(''.join(stdout), expected)
         self.assertListEqual(stderr, [])
 
     def test_multi_line_no_put_cond(self):
@@ -248,7 +254,7 @@ class UDPCollectorTests(unittest.TestCase):
         stdout = []
 
         self.run_bridge_test(inputLines, stdout, stderr)
-        self.assertEquals(''.join(stdout), expected)
+        self.assertEqual(''.join(stdout), expected)
         self.assertListEqual(stderr, [])
 
     def test_multi_line_put_cond(self):
@@ -263,7 +269,7 @@ class UDPCollectorTests(unittest.TestCase):
         stdout = []
 
         self.run_bridge_test(inputLines, stdout, stderr)
-        self.assertEquals(''.join(stdout), expected)
+        self.assertEqual(''.join(stdout), expected)
         self.assertListEqual(stderr, [])
 
     def test_multi_empty_line_no_put(self):
@@ -277,7 +283,7 @@ class UDPCollectorTests(unittest.TestCase):
         stdout = []
 
         self.run_bridge_test(inputLines, stdout, stderr)
-        self.assertEquals(''.join(stdout), expected)
+        self.assertEqual(''.join(stdout), expected)
         self.assertListEqual(stderr, ['invalid data\n'])
 
     def test_multi_empty_line_put(self):
@@ -291,7 +297,7 @@ class UDPCollectorTests(unittest.TestCase):
         stdout = []
 
         self.run_bridge_test(inputLines, stdout, stderr)
-        self.assertEquals(''.join(stdout), expected)
+        self.assertEqual(''.join(stdout), expected)
         self.assertListEqual(stderr, ['invalid data\n'])
 
     def test_multi_empty_line_no_put_cond(self):
@@ -303,7 +309,7 @@ class UDPCollectorTests(unittest.TestCase):
         stdout = []
 
         self.run_bridge_test(inputLines, stdout, stderr)
-        self.assertEquals(''.join(stdout), expected)
+        self.assertEqual(''.join(stdout), expected)
         self.assertListEqual(stderr, [])
 
     def test_multi_empty_line_put_cond(self):
@@ -319,8 +325,9 @@ class UDPCollectorTests(unittest.TestCase):
         stdout = []
 
         self.run_bridge_test(inputLines, stdout, stderr)
-        self.assertEquals(''.join(stdout), expected)
+        self.assertEqual(''.join(stdout), expected)
         self.assertListEqual(stderr, [])
+
 
 if __name__ == '__main__':
     cdir = os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])),
