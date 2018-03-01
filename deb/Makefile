@@ -45,6 +45,7 @@ deb:
 	cp $(VPATH)/collectors/0/netstat.py build/usr/local/xcollector/collectors/0/
 	cp $(VPATH)/collectors/0/procnettcp.py build/usr/local/xcollector/collectors/0/
 	cp $(VPATH)/collectors/0/procstats.py build/usr/local/xcollector/collectors/0/
+	cp $(VPATH)/collectors/0/udp_bridge.py build/usr/local/xcollector/collectors/0/
 	cp $(VPATH)/collectors/__init__.py build/usr/local/xcollector/collectors/
 	cp $(VPATH)/collectors/etc/__init__.py build/usr/local/xcollector/collectors/etc/
 	cp $(VPATH)/collectors/etc/config.py build/usr/local/xcollector/collectors/etc/
@@ -52,6 +53,7 @@ deb:
 	cp $(VPATH)/collectors/etc/metric_naming.py build/usr/local/xcollector/collectors/etc/
 	cp $(VPATH)/collectors/etc/mysqlconf.py build/usr/local/xcollector/collectors/etc/
 	cp $(VPATH)/collectors/etc/yaml_conf.py build/usr/local/xcollector/collectors/etc/
+	cp $(VPATH)/collectors/etc/udp_bridge_conf.py build/usr/local/xcollector/collectors/etc/
 	cp $(VPATH)/collectors/lib/__init__.py build/usr/local/xcollector/collectors/lib/
 	cp $(VPATH)/collectors/lib/utils.py build/usr/local/xcollector/collectors/lib/
 	cp $(VPATH)/conf/*.yml build/usr/local/xcollector/conf/

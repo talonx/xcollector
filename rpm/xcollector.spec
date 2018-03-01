@@ -92,6 +92,7 @@ mkdir -p %{buildroot}/%{py2_sitelib}/
 #%{tcollectordir}/collectors/etc/postgresqlconf.py
 #%{tcollectordir}/collectors/etc/udp_bridge_conf.py
 #%{tcollectordir}/collectors/etc/zabbix_bridge_conf.py
+%{tcollectordir}/collectors/etc/udp_bridge_conf.py
 %{tcollectordir}/conf/grok.yml %config
 %{tcollectordir}/conf/grok_nginx.yml %config
 %{tcollectordir}/conf/grok_tomcat.yml %config
@@ -108,6 +109,7 @@ mkdir -p %{buildroot}/%{py2_sitelib}/
 %{tcollectordir}/collectors/0/netstat.py
 %{tcollectordir}/collectors/0/procnettcp.py
 %{tcollectordir}/collectors/0/procstats.py
+%{tcollectordir}/collectors/0/udp_bridge.py
 #%{tcollectordir}/collectors/0/smart_stats.py
 %{tcollectordir}/collectors/0/mysql.py
 %{tcollectordir}/collectors/0/memcache.py

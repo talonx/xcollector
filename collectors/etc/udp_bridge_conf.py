@@ -4,7 +4,7 @@ def enabled():
   return True
 
 def flush_delay():
-  return 60
+  return 15
 
 def usetcp():
   return False
