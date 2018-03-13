@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -eE
 
 function setup_log () {
     logfile="xcollector-install.log"
@@ -135,6 +135,10 @@ function post_complete () {
     print_message "success" "Installation completed successfully\n"
 }
 
+function post_error () {
+    print_message "error" "Installation failed\n"
+}
+
 function check_time_diff () {
     print_message "Verifying time offset\n"
 
@@ -161,6 +165,7 @@ Metrics might now show up in the correct time window when you query\n"
     fi
 }
 
+trap post_error ERR
 setup_log
 
 if [ -n "$XC_ACCESS_TOKEN" ]; then
