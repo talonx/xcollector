@@ -24,6 +24,7 @@ License:        LGPLv3+
 Summary:        XCollector - Data collection agent for apptuit.ai
 URL:            http://apptuit.ai/xcollector.html
 Provides:       xcollector = @PACKAGE_VERSION@-@RPM_REVISION@_@GIT_SHORTSHA1@
+Packager:       XCollector Maintainers <hello+xcollector@apptuit.ai>
 Requires:       initscripts
 Requires:       python(abi) >= @PYTHON_VERSION@
 Requires:       python-devel
@@ -187,6 +188,7 @@ chown -R $XCOLLECTOR_USER.$XCOLLECTOR_GROUP /var/log/xcollector
 if [ "$1" = "0" ]; then
     # stop service before starting the uninstall
     service xcollector stop
+    chkconfig --del xcollector
 fi
 
 %postun
