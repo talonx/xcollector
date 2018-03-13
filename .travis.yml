@@ -7,9 +7,22 @@ python:
   - "3.5"
   - "3.6"
 
+cache:
+  directories:
+    - '$HOME/.rpmlint/'
+
+before_install:
+  - |
+    wget -O ~/.rpmlint/rpmlint-1.9.tar.gz https://github.com/rpm-software-management/rpmlint/archive/rpmlint-1.9.tar.gz;
+    tar xvfz ~/.rpmlint/rpmlint-1.9.tar.gz -C ~/.rpmlint;
+    BUILDER=$USER sudo make install -C ~$BUILDER/.rpmlint/rpmlint-rpmlint-1.9
+
+
 install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y rpm
+  - sudo apt-get install -y rpm python-rpm
+  - sudo apt-get install -y lintian
+#  - sudo apt-get install -y rpmlint
   - if [[ $TRAVIS_PYTHON_VERSION != 2.6 ]]; then pip install pylint; fi
   - pip install ordereddict pyyaml mysqlclient
 
@@ -26,6 +39,9 @@ script:
   - make -C rpm
   - make -C deb
 
+after_success:
+  - make lint -C rpm
+  - make lint -C deb
 
 before_deploy:
   - PACKAGE_DATE=$(git log -1 --pretty="format:%ad" $TRAVIS_TAG --date=short);

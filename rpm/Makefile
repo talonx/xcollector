@@ -57,6 +57,9 @@ rpm:
 	rpmbuild --define "_topdir %(pwd)/build" -bb build/xcollector-t.spec
 	if test -f build/RPMS/$(RPM_TARGET)/$(RPM); then mv build/RPMS/$(RPM_TARGET)/$(RPM) ./dist/; else mv xcollector.$(RPM_TARGET).rpm $(RPM); fi
 
+lint:
+	rpmlint dist/$(RPM)
+
 clean:
 	rm -rf build dist
 
