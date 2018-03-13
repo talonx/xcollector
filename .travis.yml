@@ -27,9 +27,11 @@ install:
   - pip install ordereddict pyyaml mysqlclient
 
 before_script:
+  - if [[ "$TRAVIS_PYTHON_VERSION" = "2.7" ]]; then export IS_PRIMARY_MATRIX_JOB=true; fi
   - if [[ $TRAVIS_TAG == apptuit-v* ]]; then export PACKAGE_VERSION=${TRAVIS_TAG#apptuit-v}; fi
   - echo $TRAVIS_TAG
   - echo $PACKAGE_VERSION
+  - echo $IS_PRIMARY_MATRIX_JOB
 
 script:
   - python -c "import sys; print('python version:%s' % sys.version);"
@@ -58,11 +60,11 @@ deploy:
     key: "$BINTRAY_API_KEY"
     on:
       tags: true
-      condition: $PACKAGE_VERSION != "" && $TRAVIS_PYTHON_VERSION == "2.7" && $BINTRAY_API_KEY != ""
+      condition: $PACKAGE_VERSION != "" && $IS_PRIMARY_MATRIX_JOB == "true" && $BINTRAY_API_KEY != ""
   - provider: bintray
     file: "rpm/bintray-descriptor.json"
     user: "$BINTRAY_USER"
     key: "$BINTRAY_API_KEY"
     on:
       tags: true
-      condition: $PACKAGE_VERSION != "" && $TRAVIS_PYTHON_VERSION == "2.7" && $BINTRAY_API_KEY != ""
+      condition: $PACKAGE_VERSION != "" && $IS_PRIMARY_MATRIX_JOB == "true" && $BINTRAY_API_KEY != ""
