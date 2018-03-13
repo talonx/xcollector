@@ -24,6 +24,7 @@ License:        LGPLv3+
 Summary:        XCollector - Data collection agent for apptuit.ai
 URL:            http://apptuit.ai/xcollector.html
 Provides:       xcollector = @PACKAGE_VERSION@-@RPM_REVISION@_@GIT_SHORTSHA1@
+Requires:       initscripts
 Requires:       python(abi) >= @PYTHON_VERSION@
 Requires:       python-devel
 Requires:       MySQL-python
