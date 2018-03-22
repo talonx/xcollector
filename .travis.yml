@@ -55,6 +55,7 @@ before_deploy:
 
 deploy:
   - provider: bintray
+    skip_cleanup: true
     file: "deb/bintray-descriptor.json"
     user: "$BINTRAY_USER"
     key: "$BINTRAY_API_KEY"
@@ -62,6 +63,7 @@ deploy:
       tags: true
       condition: $PACKAGE_VERSION != "" && $IS_PRIMARY_MATRIX_JOB == "true" && $BINTRAY_API_KEY != ""
   - provider: bintray
+    skip_cleanup: true
     file: "rpm/bintray-descriptor.json"
     user: "$BINTRAY_USER"
     key: "$BINTRAY_API_KEY"
