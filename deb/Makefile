@@ -73,6 +73,9 @@ deb:
 	cd build; find . -type f ! -regex '.*?DEBIAN.*' -printf '%P ' | xargs md5sum > DEBIAN/md5sums
 	dpkg-deb -b build dist/$(DEB)
 
+lint:
+	lintian --no-tag-display-limit dist/$(DEB)
+
 clean:
 	rm -rf build dist
 

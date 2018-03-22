@@ -7,16 +7,31 @@ python:
   - "3.5"
   - "3.6"
 
+cache:
+  directories:
+    - '$HOME/.rpmlint/'
+
+before_install:
+  - |
+    wget -O ~/.rpmlint/rpmlint-1.9.tar.gz https://github.com/rpm-software-management/rpmlint/archive/rpmlint-1.9.tar.gz;
+    tar xvfz ~/.rpmlint/rpmlint-1.9.tar.gz -C ~/.rpmlint;
+    BUILDER=$USER sudo make install -C ~$BUILDER/.rpmlint/rpmlint-rpmlint-1.9
+
+
 install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y rpm
+  - sudo apt-get install -y rpm python-rpm
+  - sudo apt-get install -y lintian
+#  - sudo apt-get install -y rpmlint
   - if [[ $TRAVIS_PYTHON_VERSION != 2.6 ]]; then pip install pylint; fi
   - pip install ordereddict pyyaml mysqlclient
 
 before_script:
+  - if [[ "$TRAVIS_PYTHON_VERSION" = "2.7" ]]; then export IS_PRIMARY_MATRIX_JOB=true; fi
   - if [[ $TRAVIS_TAG == apptuit-v* ]]; then export PACKAGE_VERSION=${TRAVIS_TAG#apptuit-v}; fi
   - echo $TRAVIS_TAG
   - echo $PACKAGE_VERSION
+  - echo $IS_PRIMARY_MATRIX_JOB
 
 script:
   - python -c "import sys; print('python version:%s' % sys.version);"
@@ -26,6 +41,9 @@ script:
   - make -C rpm
   - make -C deb
 
+after_success:
+  - make lint -C rpm
+  - make lint -C deb
 
 before_deploy:
   - PACKAGE_DATE=$(git log -1 --pretty="format:%ad" $TRAVIS_TAG --date=short);
@@ -42,11 +60,11 @@ deploy:
     key: "$BINTRAY_API_KEY"
     on:
       tags: true
-      condition: $PACKAGE_VERSION != "" && $TRAVIS_PYTHON_VERSION == "2.7" && $BINTRAY_API_KEY != ""
+      condition: $PACKAGE_VERSION != "" && $IS_PRIMARY_MATRIX_JOB == "true" && $BINTRAY_API_KEY != ""
   - provider: bintray
     file: "rpm/bintray-descriptor.json"
     user: "$BINTRAY_USER"
     key: "$BINTRAY_API_KEY"
     on:
       tags: true
-      condition: $PACKAGE_VERSION != "" && $TRAVIS_PYTHON_VERSION == "2.7" && $BINTRAY_API_KEY != ""
+      condition: $PACKAGE_VERSION != "" && $IS_PRIMARY_MATRIX_JOB == "true" && $BINTRAY_API_KEY != ""
