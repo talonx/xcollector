@@ -161,7 +161,7 @@ Please verify that the local server time is accurate manually.\n"
 
     if [ $time_delta -ge 300 -o $time_delta -le -300 ]; then
         print_message "warn" "There is too much time difference between local time and Apptuit.
-Metrics might now show up in the correct time window when you query\n"
+Metrics might not show up in the correct time window when you query\n"
     fi
 }
 
