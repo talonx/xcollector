@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -eE
 
 function setup_log () {
     logfile="xcollector-install.log"
@@ -135,14 +135,18 @@ function post_complete () {
     print_message "success" "Installation completed successfully\n"
 }
 
+function post_error () {
+    print_message "error" "Installation failed\n"
+}
+
 function check_time_diff () {
     print_message "Verifying time offset\n"
 
     local server_header=""
     if [ $(command -v curl) ]; then
-        server_header=$(curl -s --head https://www.google.com/humans.txt | grep '^\s*Date:\s*' | sed 's/\s*Date:\s*//g')
+        server_header=$(curl -s --head https://www.google.com/humans.txt | grep -i '^\s*Date:\s*' | sed 's/\s*Date:\s*//Ig')
     elif [ $(command -v wget) ]; then
-        server_header=$(wget -S --spider https://www.google.com/humans.txt 2>&1 | grep '^\s*Date:\s*' | sed 's/\s*Date:\s*//g')
+        server_header=$(wget -S --spider https://www.google.com/humans.txt 2>&1 | grep -i '^\s*Date:\s*' | sed 's/\s*Date:\s*//Ig')
     fi
 
     if [ "$server_header" == "" ]; then
@@ -157,10 +161,11 @@ Please verify that the local server time is accurate manually.\n"
 
     if [ $time_delta -ge 300 -o $time_delta -le -300 ]; then
         print_message "warn" "There is too much time difference between local time and Apptuit.
-Metrics might now show up in the correct time window when you query\n"
+Metrics might not show up in the correct time window when you query\n"
     fi
 }
 
+trap post_error ERR
 setup_log
 
 if [ -n "$XC_ACCESS_TOKEN" ]; then
