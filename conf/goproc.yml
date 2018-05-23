@@ -30,4 +30,4 @@
 collector:
     name: goproc
     config:
-        expvar_url: http://localhost:3001/debug/varsa
+        expvar_url: http://localhost:3001/debug/vars
