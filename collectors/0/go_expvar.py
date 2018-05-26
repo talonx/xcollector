@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
-import requests
-import traceback
+"""Collector for scraping data from Go processes' expvar endpoint"""
 
 import sys
+import traceback
 import time
+import requests
 
 from collectors.etc import yaml_conf
 from collectors.lib import utils
@@ -19,20 +20,21 @@ DEBUG = False
 
 
 def print_debug(msg):
-    if (DEBUG):
+    """Prints out debug message"""
+    if DEBUG:
         print(msg)
 
 
-def _print_nested_metrics(key, value, ts, root=None):
+def _print_nested_metrics(key, value, timestamp, root=None):
     if isinstance(value, dict):
-        for ck, cv in value.items():
-            _print_nested_metrics(ck, cv, ts, ('' if root is None else (root + '.')) + key)
+        for c_key, c_value in value.items():
+            _print_nested_metrics(c_key, c_value, timestamp, ('' if root is None else (root + '.')) + key)
     else:
-        _print_metric(key if root is None else '%s.%s' % (root, key), ts, value)
+        _print_metric(key if root is None else '%s.%s' % (root, key), timestamp, value)
 
 
-def _print_metric(metric, ts, value):
-    print('%s.%s %s %s' % (GOPROC_CONFIG['endpoints'][0]['metric_prefix'], metric, ts, value))
+def _print_metric(metric, timestamp, value):
+    print('%s.%s %s %s' % (GOPROC_CONFIG['endpoints'][0]['metric_prefix'], metric, timestamp, value))
 
 
 def _check_connection(expvar_url):
@@ -40,17 +42,17 @@ def _check_connection(expvar_url):
         response = requests.get(expvar_url)
         code = response.status_code
         if code != 200:
-            utils.err("Unexpected status code for %s: %d content: %s" % (expvar_url, code, response.text))
+            utils.err("Error status code for %s: %d : %s" % (expvar_url, code, response.text))
             exit(13)
     except:
-        utils.err("Unexpected error while checking conn to %s: %s" % (expvar_url, sys.exc_info()[0]))
+        utils.err("Unexpected error while checking %s: %s" % (expvar_url, sys.exc_info()[0]))
         traceback.print_exc()
         exit(13)
 
 
 def main(argv):
     utils.drop_privileges()
-    expvar_url = GOPROC_CONFIG['endpoints'][0]["expvar_url"] # TODO supporting single URL for now
+    expvar_url = GOPROC_CONFIG['endpoints'][0]["expvar_url"]  # TODO supporting single URL for now
     if not expvar_url.endswith('/debug/vars'):
         expvar_url = expvar_url + '/debug/vars'
 
@@ -66,12 +68,12 @@ def main(argv):
                 res_json = response.json()
                 ts_seconds = int(time.time())
                 ts_span_ago_ns = (ts_seconds - COLLECTION_INTERVAL_SECONDS) * NANO_MULTIPLIER
-                for k, v in res_json.items():
-                    if k == 'memstats':
-                        print_debug(v)
-                        pause_ns = v['PauseNs']
-                        pause_end = v['PauseEnd']
-                        num_gc = v['NumGC']
+                for j_key, j_value in res_json.items():
+                    if j_key == 'memstats':
+                        print_debug(j_value)
+                        pause_ns = j_value['PauseNs']
+                        pause_end = j_value['PauseEnd']
+                        num_gc = j_value['NumGC']
                         cur_pos = (num_gc + 255) % 256
                         index = cur_pos
                         pause_sum = 0
@@ -84,11 +86,11 @@ def main(argv):
                             index = index - 1
                         _print_metric('memstats.PauseNs.sum', ts_seconds, pause_sum)
                         _print_metric('memstats.GC.count', ts_seconds, gc_count)
-                        for mk, mv in v.items():
-                            if mk not in SKIP_MEM_KEYS:
-                                _print_metric("memstats.%s" % mk, ts_seconds, mv)
-                    elif k != 'cmdline':
-                        _print_nested_metrics(k, v, ts_seconds)
+                        for mem_key, mem_value in j_value.items():
+                            if mem_key not in SKIP_MEM_KEYS:
+                                _print_metric("memstats.%s" % mem_key, ts_seconds, mem_value)
+                    elif j_key != 'cmdline':
+                        _print_nested_metrics(j_key, j_value, ts_seconds)
         except:
             utils.err("Unexpected error for %s: %s" % (expvar_url, sys.exc_info()[0]))
             traceback.print_exc()
