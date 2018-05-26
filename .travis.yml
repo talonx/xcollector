@@ -24,7 +24,7 @@ install:
   - sudo apt-get install -y lintian
 #  - sudo apt-get install -y rpmlint
   - if [[ $TRAVIS_PYTHON_VERSION != 2.6 ]]; then pip install pylint; fi
-  - pip install ordereddict pyyaml mysqlclient
+  - pip install ordereddict pyyaml mysqlclient requests
 
 before_script:
   - if [[ "$TRAVIS_PYTHON_VERSION" = "2.7" ]]; then export IS_PRIMARY_MATRIX_JOB=true; fi
