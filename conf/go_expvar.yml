@@ -4,30 +4,32 @@
 # You can specify just the host:port or the full URL. In the former case /debug/vars will be appended to the host port
 #
 # Metrics will be collected according to the following rules
-# 1. All memory metrics except 'PauseNs', 'PauseEnd', 'BySize' are collected
+# 1. All memory metrics except 'BySize' and the boolean flags (which are unused or always the same value) are collected
 # 2. All custom metrics published via expvar are collected in the following manner
 #   a) If the metric is a simple number, it is sent to xcollector as-is (i.e. metric-name value)
-#   b) If the metric is a map, the map is iterated recursively until we find (a). Such metrics are written to xcollector
+#   b) If the metric is a map, the map is traversed recursively until we find (a). Such metrics are written to xcollector
 #     after constructing the metric name by appending the parent names separated by a dot.
 #     E.g. for the debug vars output
 #     "hits": 34,
 #     "stats":
-#       {"advanced":
+#       {"connections":
 #            {
 #             "closed": 748,
 #             "opened": 800
 #            },
-#       "connections": 800
+#       "sockets": 800
 #      }
 #
 #   The metrics collected will be
 #   hits 1527091857 34
-#   stats.connections 1527091857 800
-#   stats.advanced.opened 1527091857 800
-#   stats.advanced.closed 1527091857 748
+#   stats.sockets 1527091857 800
+#   stats.connections.opened 1527091857 800
+#   stats.connections.closed 1527091857 748
 #
 
 collector:
-    name: goproc
+    name: go_expvar
     config:
-        expvar_url: http://localhost:3001/debug/vars
+        endpoints:
+          - expvar_url: http://localhost:3001/debug/vars
+            metric_prefix: dashboard
