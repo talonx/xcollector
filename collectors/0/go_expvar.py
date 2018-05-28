@@ -28,13 +28,16 @@ def print_debug(msg):
 def _print_nested_metrics(key, value, timestamp, root=None):
     if isinstance(value, dict):
         for c_key, c_value in value.items():
-            _print_nested_metrics(c_key, c_value, timestamp, ('' if root is None else (root + '.')) + key)
+            _print_nested_metrics(c_key, c_value, timestamp,
+                                  ('' if root is None else (root + '.')) + key)
     else:
         _print_metric(key if root is None else '%s.%s' % (root, key), timestamp, value)
 
 
 def _print_metric(metric, timestamp, value):
-    print('%s.%s %s %s' % (GOPROC_CONFIG['endpoints'][0]['metric_prefix'], metric, timestamp, value))
+    print('%s.%s %s %s' %
+          (GOPROC_CONFIG['endpoints'][0]['metric_prefix'], metric, timestamp, value)
+          )
 
 
 def _check_connection(expvar_url):
@@ -63,7 +66,8 @@ def main(argv):
             response = requests.get(expvar_url)
             code = response.status_code
             if code != 200:
-                utils.err("Unexpected status code for %s: %d content: %s" % (expvar_url, code, response.text))
+                utils.err("Unexpected status code for %s: %d content: %s"
+                          % (expvar_url, code, response.text))
             else:
                 res_json = response.json()
                 ts_seconds = int(time.time())
