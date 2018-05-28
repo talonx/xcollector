@@ -19,8 +19,7 @@ SKIP_MEM_KEYS = ['PauseNs', 'PauseEnd', 'BySize', 'EnableGC', 'DebugGC', 'LastGC
 DEBUG = False
 
 
-def print_debug(msg):
-    """Prints out debug message"""
+def _print_debug(msg):
     if DEBUG:
         print(msg)
 
@@ -36,8 +35,7 @@ def _print_nested_metrics(key, value, timestamp, root=None):
 
 def _print_metric(metric, timestamp, value):
     print('%s.%s %s %s' %
-          (GOPROC_CONFIG['endpoints'][0]['metric_prefix'], metric, timestamp, value)
-          )
+          (GOPROC_CONFIG['endpoints'][0]['metric_prefix'], metric, timestamp, value))
 
 
 def _check_connection(expvar_url):
@@ -47,15 +45,37 @@ def _check_connection(expvar_url):
         if code != 200:
             utils.err("Error status code for %s: %d : %s" % (expvar_url, code, response.text))
             exit(13)
-    except:
+    except Exception:
         utils.err("Unexpected error while checking %s: %s" % (expvar_url, sys.exc_info()[0]))
         traceback.print_exc()
         exit(13)
 
 
-def main(argv):
+def _extract_memstats(memstats, ts_seconds, ts_span_ago_ns):
+    _print_debug(memstats)
+    pause_ns = memstats['PauseNs']
+    pause_end = memstats['PauseEnd']
+    num_gc = memstats['NumGC']
+    cur_pos = (num_gc + 255) % 256
+    index = cur_pos
+    pause_sum = 0
+    gc_count = 0
+    while index >= 0 and pause_end[index] >= ts_span_ago_ns:
+        _print_debug('Item %s %s' % (pause_ns[index], pause_end[index]))
+        pause_sum += pause_ns[index]
+        gc_count += 1
+        index = index - 1
+    _print_metric('memstats.PauseNs.sum', ts_seconds, pause_sum)
+    _print_metric('memstats.GC.count', ts_seconds, gc_count)
+    for mem_key, mem_value in memstats.items():
+        if mem_key not in SKIP_MEM_KEYS:
+            _print_metric("memstats.%s" % mem_key, ts_seconds, mem_value)
+
+
+def main():
+    """Main loop"""
     utils.drop_privileges()
-    expvar_url = GOPROC_CONFIG['endpoints'][0]["expvar_url"]  # TODO supporting single URL for now
+    expvar_url = GOPROC_CONFIG['endpoints'][0]["expvar_url"]
     if not expvar_url.endswith('/debug/vars'):
         expvar_url = expvar_url + '/debug/vars'
 
@@ -74,28 +94,10 @@ def main(argv):
                 ts_span_ago_ns = (ts_seconds - COLLECTION_INTERVAL_SECONDS) * NANO_MULTIPLIER
                 for j_key, j_value in res_json.items():
                     if j_key == 'memstats':
-                        print_debug(j_value)
-                        pause_ns = j_value['PauseNs']
-                        pause_end = j_value['PauseEnd']
-                        num_gc = j_value['NumGC']
-                        cur_pos = (num_gc + 255) % 256
-                        index = cur_pos
-                        pause_sum = 0
-                        gc_count = 0
-                        # TODO optimize for last GC run.
-                        while index >= 0 and pause_end[index] >= ts_span_ago_ns:
-                            print_debug('Item %s %s' % (pause_ns[index], pause_end[index]))
-                            pause_sum += pause_ns[index]
-                            gc_count += 1
-                            index = index - 1
-                        _print_metric('memstats.PauseNs.sum', ts_seconds, pause_sum)
-                        _print_metric('memstats.GC.count', ts_seconds, gc_count)
-                        for mem_key, mem_value in j_value.items():
-                            if mem_key not in SKIP_MEM_KEYS:
-                                _print_metric("memstats.%s" % mem_key, ts_seconds, mem_value)
+                        _extract_memstats(j_value, ts_seconds, ts_span_ago_ns)
                     elif j_key != 'cmdline':
                         _print_nested_metrics(j_key, j_value, ts_seconds)
-        except:
+        except Exception:
             utils.err("Unexpected error for %s: %s" % (expvar_url, sys.exc_info()[0]))
             traceback.print_exc()
         sys.stdout.flush()
@@ -103,4 +105,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    sys.exit(main())
